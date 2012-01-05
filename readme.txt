@@ -12,14 +12,26 @@ Files:
 		
 		So Far: 
 			Modules
-			Signal Tracks
+				Names/Values
+				Pads
+			
+			Signal
+				Connections
+				Tracks
+				Vias
+				
 			PCB Edges
-			Vias 
+			
+			Graphics:
+				Lines
+				Text (buggy if txt is rotated) 
 		
 		Not Yet:
-			Zones (For some reason they show up but can't be filled... then they dissappear)
-			Graphics (both in modules, and plain)
-			Text (No text whatsoever is transfered)
+			Zones 
+				(For some reason they show up but can't be filled... then they dissappear)
+			Modules:
+				Graphics
+				Names/Values textLayer
 			
 		
 		 
