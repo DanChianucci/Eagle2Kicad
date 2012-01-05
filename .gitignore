@@ -3,3 +3,4 @@
 /.pydevproject
 /*.000
 /*.xml
+/__pycache__/

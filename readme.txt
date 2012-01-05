@@ -5,6 +5,8 @@ The project is currently in the early stages, so please try it out and report an
 
 It will only work with eagle files made with Eagle 6.0 and higher
 
+The board will show up in kicad centered in the red sheet
+
 
 Files:
 	Eagle2kicad.py:

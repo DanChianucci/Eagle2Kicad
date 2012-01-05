@@ -3,25 +3,17 @@ Created on Dec 23, 2011
 
 @author: Dan Chianucci
 '''
-from xml.parsers.expat import ParserCreate
+from brdParser import brdParser
 import codecs
 
 myDict={}
-tree=[]
-level=0
-polygonIndex=-1
-polygonHolder=''
-lastPolygonHolder=''
-textHolder=''
-lastTextHolder=''
-textIndex=-1
-addTo=myDict
 contactRefs={}
 signalIds={}
-
+layerIds={}
 
 def getLayerIds():
-        return{'1':'15',
+    global layerIds
+    layerIds={'1':'15',
                '2':'14',
                '3':'13',
                '4':'12',
@@ -55,17 +47,6 @@ def getLayerIds():
                '95':'26',
                '96':'27'}
 
-layerIds=getLayerIds()
-
-def main():
-    inFile=open(input("Enter Name of Eagle File: "))
-    contents=''
-    for line in inFile:
-        contents+=line.strip()  
-    parse(contents)
-    getContactRefs()
-    printKicadFile()
-
 def getContactRefs():
     global contactRefs
     signals=myDict['eagle']['drawing']['board']['signals']
@@ -80,76 +61,57 @@ def getContactRefs():
                 contactRefs[element]={}
             contactRefs[element][pad]=signal
 
+
+def main():
+    global myDict
+    inFile=open(input("Enter Name of Eagle File: "))
+    b=brdParser()
+    myDict=b.parse(inFile)
+    getContactRefs()
+    getLayerIds()
+    printKicadFile()
+
 def printKicadFile():
-    out=codecs.open(input("Output File: "),'a','utf-8')
-    print()
+    outFileName=input("Output File: ")
+    out=codecs.open(outFileName,'w','utf-8')
     out.write('PCBNEW-BOARD Version 0 date 0/0/0000 00:00:00\n\n')
-    
+    out.close()
+    out=codecs.open(outFileName,'a','utf-8')
+
     writeEQUIPOT(out)
     writeMODULES(out)
     writeGRAPHICS(out)
     writeTRACKS(out)
     writeZONES(out)
-#    Descriptions=['TRACK','ZONE','CZONE_OUTLINE',]
-#    for desc in Descriptions:
-#        writeDescriptionFor(desc,out,info)
-    
+       
     out.write('$EndBOARD')
     out.close()
 
-def writeEQUIPOT(outFile):
-    global myDict
-    global signalIds
-    subDict=myDict['eagle']['drawing']['board']['signals'] 
-    i=0
-    for signal in subDict:
-        i+=1
-        name=subDict[signal].get('name')
-        signalIds[name]=str(i)
-        outFile.write('$EQUIPOT\n')
-        outFile.write('Na '+str(i)+' '+name+'\n')
-        outFile.write('St~\n')
-        outFile.write('$EndEQUIPOT\n\n')
 
 
-def getWireInfo(wire):
-        x1=convertCoordinate(wire.get('x1'))
-        if x1==None:
-            print('x1=none')
-            return None
-        y1=convertCoordinate(-float(wire.get('y1')))
-        if y1==None:
-            print('y1=none')
-            return None
-        x2=convertCoordinate(wire.get('x2'))
-        if x2==None:
-            print('x2=none')
-            return None
-        y2=convertCoordinate(-float(wire.get('y2')))
-        if y2==None:
-            print('y2=none')
-            return None
-        width=convertCoordinate(wire.get('width'))
-        if width==None:
-            print('width=none')
-            return None
+def getWireInfo(wire,noTranspose=False):
+        x1,y1=convertCoordinate(wire.get('x1'),wire.get('y1'),noTranspose)
+        x2,y2=convertCoordinate(wire.get('x2'),wire.get('y2'),noTranspose)
+        width=convertUnit(wire.get('width'))
         layer=layerIds.get(wire.get('layer'))
-        if layer==None:
-            print('layer=none')
-            return None
         curve=wire.get('curve')
         if not curve==None:
-            curve=str(int(float(curve)*10))     
+            curve=str(int(float(curve)*10))
+            
+        listCheck=[x1,y1,x2,y2,width,layer]
+        for element in listCheck:
+            if element==None:
+                return None
+                
         return {'x1':x1,'y1':y1,'x2':x2,'y2':y2,'width':width,'layer':layer,'curve':curve}
     
-def getTextInfo(text):
+def getTextInfo(text,noTranspose=False):
     global layerIds
     
     txtData=text['txtData']
-    x=convertCoordinate(text['x'])
-    y=convertCoordinate(-float(text['y']))
-    xSize=convertCoordinate(float(text['size']))#5/7.0)
-    ySize=convertCoordinate(text['size'])
+    x,y=convertCoordinate(text['x'],text['y'],noTranspose)
+    xSize=convertUnit(text['size'])#*5/7
+    ySize=convertUnit(text['size'])
     
     wMod=text.get('ratio')
     if wMod==None:
@@ -208,16 +170,13 @@ def getCircInfo(circ):
     pass
 
 def getViaInfo(via):
-        x=convertCoordinate(via.get('x'))
-        if x==None:
+    x,y=convertCoordinate(via.get('x'),via.get('y'))
+    drill=convertUnit(via.get('drill'))
+    checkList=[x,y,drill]
+    for element in checkList:
+        if element==None:
             return None
-        y=convertCoordinate(-float(via.get('y')))
-        if y==None:
-            return None
-        drill=convertCoordinate(via.get('drill'))
-        if drill==None:
-            return None
-        return {'x':x,'y':y,'drill':drill}
+    return {'x':x,'y':y,'drill':drill}
         
 def getPolyInfo(poly):
     pass
@@ -240,9 +199,7 @@ def getRotationInfo(rot):
     return {'rot':rot,'mirror':mirror,'spin':spin}
 
 def getModInfo(mod):
-    
-    x=convertCoordinate(mod['x'])
-    y=convertCoordinate(-float(mod['y']))
+    x,y=convertCoordinate(mod['x'],mod['y'])
     rotation = getRotationInfo(mod.get('rot'))
     layer='0' if rotation['mirror'] else '15'
     package=mod.get('package')
@@ -255,8 +212,7 @@ def getPadInfo(pad,modName,modRot,mirror):
     rot=modRot
     name=pad.get('name')
     shapeType='smd' if pad.get('drill')==None else 'pad'
-    pX=convertCoordinate(pad['x'])
-    pY=convertCoordinate(-float(pad['y']))    
+    pX,pY=convertCoordinate(pad['x'],pad['y'],True)   
     net=None
     if not contactRefs.get(modName)==None:
         if not contactRefs[modName].get(name)==None:
@@ -265,11 +221,11 @@ def getPadInfo(pad,modName,modRot,mirror):
             net={'name':netName,'num':netNumber}
     
     if shapeType=='pad':
-        drill=convertCoordinate(pad['drill'])
+        drill=convertUnit(pad['drill'])
         if pad.get('diameter')==None:
             diameter=str(int(int(drill)*1.5))
         else:
-            diameter=convertCoordinate(pad['diameter'])
+            diameter=convertUnit(pad['diameter'])
         xSize=diameter
         ySize=diameter
         kind='STD'
@@ -278,8 +234,8 @@ def getPadInfo(pad,modName,modRot,mirror):
     
     elif shapeType=='smd':
         drill='0'
-        xSize=convertCoordinate(pad['dx'])
-        ySize=convertCoordinate(pad['dy'])
+        xSize=convertUnit(pad['dx'])
+        ySize=convertUnit(pad['dy'])
         if not pad.get('rot')==None:
             pRot=getRotationInfo(pad['rot'])['rot']
             rot=str(int(pRot)+int(modRot))
@@ -290,7 +246,24 @@ def getPadInfo(pad,modName,modRot,mirror):
     return {'name':name,'drill':drill,'xSize':xSize, 'ySize':ySize,'x':pX,'y':pY,'net':net,'kind':kind,'shape':shape,'layerMask':layerMask,'rot':rot}                     
 
     
+def writeEQUIPOT(outFile):
+    global myDict
+    global signalIds
+    subDict=myDict['eagle']['drawing']['board']['signals'] 
+    i=0
+    for signal in subDict:
+        i+=1
+        name=subDict[signal].get('name')
+        signalIds[name]=str(i)
+        outFile.write('$EQUIPOT\n')
+        outFile.write('Na '+str(i)+' '+name+'\n')
+        outFile.write('St~\n')
+        outFile.write('$EndEQUIPOT\n\n')
 
+#No Text
+#No polyGons
+#No Circs
+#NoRects
 def writeMODULES(outFile):
     global myDict
     global signalIds
@@ -316,7 +289,7 @@ def writeMODULES(outFile):
         #Drawing
         if not libInfo.get('wire')==None:
             for wire in libInfo['wire']:
-                w=getWireInfo(wire)
+                w=getWireInfo(wire,True)
 
                 if not w==None:
                     wtype='DS ' if w['curve']==None else 'DA '
@@ -348,6 +321,9 @@ def writeMODULES(outFile):
                 
         outFile.write('$EndMODULE '+mod['package']+'\n\n')
 
+#No Polygons
+#No Circles
+#No Rectangle
 def writeGRAPHICS(outFile):
     plainWires=myDict['eagle']['drawing']['board']['plain']['wire']
     plainText=myDict['eagle']['drawing']['board']['plain']['text']
@@ -371,6 +347,7 @@ def writeGRAPHICS(outFile):
             outFile.write('Po '+info['x']+' '+info['y']+' '+info['xSize']+' '+info['ySize']+' '+info['width']+' '+info['rot']+'\n')
             outFile.write('De '+info['layer']+' '+info['mirror']+' 0000 '+info['style']+' '+info['just']+'\n')
             outFile.write('$EndTEXTPCB\n\n')
+
 
 def writeTRACKS(outFile):
     signals=myDict['eagle']['drawing']['board']['signals']
@@ -406,11 +383,9 @@ def writeZONES(outFile):
                 vertexs=polygon['vertex']
                 for _i in range(len(vertexs)):
                     nexti=(_i+1)%len(vertexs)
-                    x1=convertCoordinate(vertexs[_i]['x'])
-                    y1=convertCoordinate(-float(vertexs[_i]['y']))
-                    x2=convertCoordinate(vertexs[nexti]['x'])
-                    y2=convertCoordinate(-float(vertexs[nexti]['y']))
-                    width=convertCoordinate(polygon['width'])                    
+                    x1,y1=convertCoordinate(vertexs[_i]['x'],vertexs[_i]['y'])
+                    x2,y2=convertCoordinate(vertexs[nexti]['x'],vertexs[nexti]['y'])
+                    width=convertUnit(polygon['width'])                    
                     netCode=signalIds[sigName]   
                     layer=layerIds.get(polygon['layer'])
                     if not layer == None:
@@ -420,115 +395,29 @@ def writeZONES(outFile):
     outFile.write('$EndZONE\n\n')
     
 
-def convertCoordinate(coord):
-    if coord==None:
+def convertUnit(unit):
+    if unit==None:
         return None
-    return str(int(float(coord)/25.4*10000))
-  
-def start_element(name, attrs):
-    global tree
+    return str(int(float(unit)/25.4*10000))
+
+def convertCoordinate(x,y,noTranspose=False):
     global myDict
-    global polygonHolder
-    global polygonIndex
-    global lastPolygonHolder 
-    global textHolder
-    global lastTextHolder
-    global textIndex
-    global addTo
     
-    addTo=myDict
-    
-    if name=='autorouter' or name=='designrules' or tree.__contains__('designrules') or tree.__contains__('autorouter'):
-            tree.append(name)
-            return None
-    
-    if len(tree)>0:     
-        for unit in tree:
-            addTo=addTo[unit]
-    
-    if name=='setting':
-        for key in attrs:
-            addTo[key]=attrs[key]        
+    if noTranspose:
+            xTranspose=0
+            yTranspose=0
     else:
-        if name=='layer': 
-            name=attrs['number']
-            addTo[name]=attrs            
-        
-        elif name=='element' or name=='signal' or name=='library' or name=='class' or name=='package' or name=='attribute':
-            name=attrs['name']
-            addTo[name]=attrs
-        
-        elif name=='smd' or name=='pad':
-            if addTo.get(name)==None:
-                addTo[name]={}
-            pname=attrs['name']
-            addTo[name][pname]=attrs
-        
-        elif name=='contactref':
-            if addTo.get('contactref')==None:
-                addTo['contactref']={}
-            name=attrs['element']+':'+attrs['pad']
-            addTo['contactref'][name]=attrs
-            
-        elif name=='wire' or name=='circle' or name=='rectangle' or name=='polygon' or name=='via':
-            if name=='polygon':
-                polygonHolder=tree[-1]
-                if not polygonHolder == lastPolygonHolder:
-                    polygonIndex=-1
-                    lastPolygonHolder=polygonHolder
-                polygonIndex+=1
-                
-            if addTo.get(name)==None:
-                addTo[name]=[]
-            
-            addTo[name].append(attrs)
-        
-        elif name=='vertex':
-            #vertexs lie within polygon... therefore addTo will be a list of dictionaries see above
-            #we must add the vertex to the correct dictionary
-            if addTo[polygonIndex].get('vertex')==None: #makes sure there is a vertex list in the polygon
-                addTo[polygonIndex]['vertex']=[]
-            addTo[polygonIndex]['vertex'].append(attrs)
-
-        
-        elif name=='text':
-            textHolder=tree[-1]
-            if not textHolder == lastTextHolder:
-                textIndex=-1
-                lastTextHolder=textHolder
-            textIndex+=1
-                
-            if addTo.get(name)==None:
-                addTo[name]=[]            
-            addTo[name].append(attrs)
-        
-        else:
-            addTo[name]=attrs    
-        
-    tree.append(name)   
+        border=myDict['border']
+        cX,cY=convertCoordinate(border['cX'],border['cY'],True)
+        xTranspose=0 if noTranspose else 58500-int(cX)
+        yTranspose=0 if noTranspose else 41355-int(cY)
     
-def end_element(name):
-    global tree
-    tree.pop()
+    if not x==None: 
+        x=str(xTranspose+int(float(x)/25.4*10000))
+    if not y==None:
+        y=str(yTranspose+int(-float(y)/25.4*10000))
+    return x,y  
 
-def char_data(data):
-    global tree
-    global addTo
-    global textIndex
-    
-    if tree[-1]=='text':
-        if addTo['text'][textIndex].get('txtData')==None:
-            addTo['text'][textIndex]['txtData']=''
-        addTo['text'][textIndex]['txtData']+=data
-
-def parse(contents):
-    encoding='utf-8'
-    p=ParserCreate(encoding)
-    p.StartElementHandler = start_element
-    p.EndElementHandler = end_element
-    p.CharacterDataHandler = char_data    
-    p.Parse(contents)
-    
 if __name__ == '__main__':
     main()
 
