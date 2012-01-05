@@ -14,6 +14,8 @@ Files:
 			Modules
 				Names/Values
 				Pads
+				Graphics
+					wires
 			
 			Signal
 				Connections
@@ -24,14 +26,25 @@ Files:
 			
 			Graphics:
 				Lines
-				Text (buggy if txt is rotated) 
+				Text 
 		
 		Not Yet:
 			Zones 
 				(For some reason they show up but can't be filled... then they dissappear)
+			
 			Modules:
 				Graphics
+					Arcs
+					Polygons
+					etc...
+					
 				Names/Values textLayer
+			
+			Graphics:
+				Circles
+				Rectangles
+				Arcs
+				Polygons
 			
 		
 		 

@@ -18,8 +18,44 @@ textIndex=-1
 addTo=myDict
 contactRefs={}
 signalIds={}
-layerIds={'1':'15','2':'14','3':'13','4':'12','5':'11','6':'10','7':'9','8':'8','9':'7','10':'6','11':'5','12':'4','13':'3','14':'2','15':'1','16':'0',
-          '20':'28','21':'21','22':'20','29':'23','30':'22','31':'19','32':'18','35':'17','36':'16','51':'24','52':'25','95':'26','96':'27'}
+
+
+def getLayerIds():
+        return{'1':'15',
+               '2':'14',
+               '3':'13',
+               '4':'12',
+               '5':'11',
+               '6':'10',
+               '7':'9',
+               '8':'8',
+               '9':'7',
+               '10':'6',
+               '11':'5',
+               '12':'4',
+               '13':'3',
+               '14':'2',
+               '15':'1',
+               '16':'0',
+               '20':'28',
+               '21':'21',
+               '22':'20',
+               '25':'25',
+               '26':'25',
+               '27':'26',
+               '28':'26',
+               '29':'23',
+               '30':'22',
+               '31':'19',
+               '32':'18',
+               '35':'17',
+               '36':'16',
+               '51':'26',
+               '52':'27',
+               '95':'26',
+               '96':'27'}
+
+layerIds=getLayerIds()
 
 def main():
     inFile=open(input("Enter Name of Eagle File: "))
@@ -79,38 +115,49 @@ def writeEQUIPOT(outFile):
 def getWireInfo(wire):
         x1=convertCoordinate(wire.get('x1'))
         if x1==None:
+            print('x1=none')
             return None
         y1=convertCoordinate(-float(wire.get('y1')))
         if y1==None:
+            print('y1=none')
             return None
         x2=convertCoordinate(wire.get('x2'))
         if x2==None:
+            print('x2=none')
             return None
         y2=convertCoordinate(-float(wire.get('y2')))
         if y2==None:
+            print('y2=none')
             return None
         width=convertCoordinate(wire.get('width'))
         if width==None:
+            print('width=none')
             return None
         layer=layerIds.get(wire.get('layer'))
         if layer==None:
-            return None       
-        return {'x1':x1,'y1':y1,'x2':x2,'y2':y2,'width':width,'layer':layer}
+            print('layer=none')
+            return None
+        curve=wire.get('curve')
+        if not curve==None:
+            curve=str(int(float(curve)*10))     
+        return {'x1':x1,'y1':y1,'x2':x2,'y2':y2,'width':width,'layer':layer,'curve':curve}
     
 def getTextInfo(text):
+    global layerIds
+    
     txtData=text['txtData']
     x=convertCoordinate(text['x'])
     y=convertCoordinate(-float(text['y']))
-    xSize=convertCoordinate(float(text['size'])*5/7.0)
+    xSize=convertCoordinate(float(text['size']))#5/7.0)
     ySize=convertCoordinate(text['size'])
     
     wMod=text.get('ratio')
     if wMod==None:
         wMod='8'
-    width=str(int(ySize)*int(wMod)/100.0)
+    width=str(int(ySize)*int(wMod)//100)
 
     
-    rot= text.get('rot')
+    rot=text.get('rot')
     if rot==None:
         rot='0'
         mirror='1'
@@ -124,7 +171,7 @@ def getTextInfo(text):
     if not (rot=='0' or rot=='900' or rot=='1800' or rot=='2700' or rot=='3600'):
         return None
      
-    layer=text['layer']
+    layer=layerIds[text['layer']]
     style='Normal'
     
     if spin:
@@ -139,16 +186,19 @@ def getTextInfo(text):
     
     rot=int(rot)
     offset=int(ySize)//2
+    sign=1
+    if justification=='R':
+        sign=-1
     if (rot+3600)%3600==0:
-        y=str(int(y)-offset)
+        y=str(int(y)-offset*sign)
     elif(rot+3600)%3600==900:
-        x=str(int(x)-offset)
-    elif(rot+3600)%3600==180:
-        y=str(int(y)+offset)
+        x=str(int(x)-offset*sign)
+    elif(rot+3600)%3600==1800:
+        y=str(int(y)+offset*sign)
     elif(rot+3600)%3600==2700:
-        x=str(int(x)+offset)
+        x=str(int(x)+offset*sign)
+        
     rot=str(rot)
-    ##@TODO not doing roations correctly
     return {'text':txtData,'x':x,'y':y,'xSize':xSize,'ySize':ySize,'width':width,'rot':rot,'mirror':mirror,'just':justification,'layer':layer,'style':style}
   
 def getRectInfo(rect):
@@ -250,8 +300,6 @@ def writeMODULES(outFile):
     for name in subDict:
         info=subDict[name]
         mod=getModInfo(info)
-        print(mod['lib'])
-        print(mod['package'])    
         libInfo=myDict['eagle']['drawing']['board']['libraries'][mod['lib']]['packages'][mod['package']]
         
         outFile.write('$MODULE '+mod['package']+'\n')
@@ -259,12 +307,21 @@ def writeMODULES(outFile):
         outFile.write('Li '+mod['package']+'\n')
         outFile.write('Sc 00000000\n')
         outFile.write('Op 0 0 0\n')
-        #Field Desc "Name/Value"
         
-        #@todo: Need to make this correct
+        #Field Desc "Name/Value"
         #              T# x y xsize ysize rot penWidth N Visible layer "txt"
         outFile.write('T0 0 0 0 0 0 0 N I 25 "'+mod['name']+'"\n')
         outFile.write('T1 0 0 0 0 0 0 N I 26 "'+mod['value']+'"\n')
+        
+        #Drawing
+        if not libInfo.get('wire')==None:
+            for wire in libInfo['wire']:
+                w=getWireInfo(wire)
+
+                if not w==None:
+                    wtype='DS ' if w['curve']==None else 'DA '
+                    curve=' ' if w['curve']==None else (' '+w['curve']+' ')
+                    outFile.write(wtype+w['x1']+' '+w['y1']+' '+w['x2']+' '+w['y2']+curve+w['width']+' '+w['layer']+'\n')
         
         #PAD Descriptions:
         mirror=mod['mirror']
@@ -294,7 +351,10 @@ def writeMODULES(outFile):
 def writeGRAPHICS(outFile):
     plainWires=myDict['eagle']['drawing']['board']['plain']['wire']
     plainText=myDict['eagle']['drawing']['board']['plain']['text']
-
+#    plainCircles=myDict['eagle']['drawing']['board']['plain']['circle']
+#    plainRects=myDict['eagle']['drawing']['board']['plain']['rectangle']
+#    plainPolys=myDict['eagle']['drawing']['board']['plain']['polygon']
+    
     for line in plainWires:        
         info=getWireInfo(line)
         if not info == None:
@@ -358,127 +418,13 @@ def writeZONES(outFile):
                         outFile.write('De '+layer+' 0 '+netCode+' 0 0\n')
                         
     outFile.write('$EndZONE\n\n')
-
-def writeDescriptionFor(desc,outFile,info):
-    global myDict
-    global signalIds
-    global contactRefs
     
-#    if desc=='SETUP':
-#        outFile.write("$SETUP\n"+
-#            "InternalUnit 1 MILIMETER\n"+
-#            "Layers "+str(len(info))+'\n')
-#        for layer in info:
-#            outFile.write('Layer['+str(layer)+'] '+myDict['eagle']['drawing']['layers'][str(layer)]['name']+' signal\n')
-#        outFile.write('$EndSETUP\n\n')
-    
-    if desc=='EQUIPOT':
-        subDict=myDict['eagle']['drawing']['board']['signals'] 
-        i=0
-        for signal in subDict:
-            i+=1
-            name=subDict[signal].get('name')
-            signalIds[name]=str(i)
-            outFile.write('$EQUIPOT\n')
-            outFile.write('Na '+str(i)+' '+name+'\n')
-            outFile.write('St~\n')
-            outFile.write('$EndEQUIPOT\n\n')
-            
-    elif desc=='MODULE':
-        subDict=myDict['eagle']['drawing']['board']['elements']
-        
-        for name in subDict:
-            info=subDict[name]
-            package=info['package']
-            library=info['library']
-            libInfo=myDict['eagle']['drawing']['board']['libraries'][library]['packages'][package]
-            x=convertCoordinate(info['x'])
-            y=convertCoordinate(-float(info['y']))
-            
-            mirror=False
-            if info.get('rot')==None:
-                rot='0'
-            else:
-                rot=info['rot']
-                if rot[0]=='M':
-                    mirror=True
-                    rot=str(int(float(rot[2:])*10))
-                else:
-                    rot=str(int(float(rot[1:])*10))
-            
-            layer='0' if mirror else '15'
-            
-            outFile.write('$MODULE '+package+'\n')
-            outFile.write('Po '+x+' '+y+' '+rot+' '+layer+' 00000000 00000000 ~~\n')
-            outFile.write('Li '+package+'\n')
-            outFile.write('Sc 00000000\n')
-            outFile.write('Op 0 0 0\n')
-            #Field Desc "Name/Value"
-            #              T# x y xsize ysize rot penWidth N Visible layer "txt"
-            outFile.write('T0 0 0 0 0 0 0 N I 25 "'+str(info.get('name'))+'"\n')
-            outFile.write('T1 0 0 0 0 0 0 N I 26 "'+str(info.get('value'))+'"\n')
-            
-            #PAD Descriptions:
-            if not libInfo.get('pad')==None:
-                for pad in libInfo['pad']:
-                    padName=pad
-                    pad=libInfo['pad'][pad]
-                    outFile.write('$PAD\n')
-                    if pad.get('diameter')==None:
-                        diameter=str(int(int(convertCoordinate(pad['drill']))*1.5))
-                    else:
-                        diameter=convertCoordinate(pad['diameter'])
-                    outFile.write('Sh "'+pad.get('name')+'" C '+diameter+' '+diameter+' 0 0 '+rot+'\n')
-                    drill=convertCoordinate(pad['drill'])
-                    outFile.write('Dr '+drill+' 0 0\n')
-                    outFile.write('At STD N 00A88001\n') #00A88001 should tell it to go through all layers
-                    ###HMMMM? will need to get this from will need to get a list of all contact refs
-                    if not contactRefs.get(name)==None:
-                        if not contactRefs[name].get(padName)==None:
-                            netname=contactRefs[name][padName]
-                            netNumber=signalIds[netname]
-                            outFile.write('Ne '+netNumber+' "'+netname+'"\n')
-                    pX=convertCoordinate(pad['x'])
-                    pY=convertCoordinate(-float(pad['y']))
-                    outFile.write('Po '+pX+' '+pY+'\n')                      
-                    outFile.write('$EndPAD\n')
-                
-            if not libInfo.get('smd')==None:
-                for smd in libInfo['smd']:
-                    smdName=smd
-                    smd=libInfo['smd'][smd]
-                    outFile.write('$PAD\n')      
-                    xsize=convertCoordinate(smd['dx'])
-                    ysize=convertCoordinate(smd['dy'])
-                    outFile.write('Sh "'+smdName+'" R '+xsize+' '+ysize+' 0 0 '+rot+'\n')
-                    outFile.write('Dr 0 0 0\n')
-                    outFile.write('At SMD N 00888000\n')
-                    if not contactRefs.get(name)==None:
-                        if not contactRefs[name].get(smdName)==None:
-                            netname=contactRefs[name][smdName]
-                            netNumber=signalIds[netname]
-                            outFile.write('Ne '+netNumber+' "'+netname+'"\n')
-                    pX=convertCoordinate(smd['x'])
-                    pY=convertCoordinate(-float(smd['y']))
-                    outFile.write('Po '+pX+' '+pY+'\n')  
-                    
-                    outFile.write('$EndPAD\n')
-                    
-            outFile.write('$EndMODULE '+package+'\n\n')
-
-            
-    else:
-        outFile.write('$'+desc+'\n')
-        outFile.write('$End'+desc+'\n\n')
-
-
 
 def convertCoordinate(coord):
     if coord==None:
         return None
     return str(int(float(coord)/25.4*10000))
-
-   
+  
 def start_element(name, attrs):
     global tree
     global myDict
