@@ -121,8 +121,8 @@ def getWireArcInfo(arc,noTranspose=False,noInvert=False):
     
     curve=float(arc['curve'])
 #    print('Curve: ',curve)
-    x1,y1=arc.get('x1'),arc.get('y1')#convertCoordinate(arc.get('x1'),arc.get('y1'),noTranspose,noInvert)
-    x2,y2=arc.get('x2'),arc.get('y2')#convertCoordinate(arc.get('x2'),arc.get('y2'),noTranspose,noInvert)
+    x1,y1=arc.get('x1'),arc.get('y1')
+    x2,y2=arc.get('x2'),arc.get('y2')
 #    print('Point 1: ',(x1,y1))
 #    print('Point 2: ',(x2,y2))
     
@@ -173,11 +173,27 @@ def getWireArcInfo(arc,noTranspose=False,noInvert=False):
 #    y1=str(int(y1))
 #    cX=str(int(cX))
 #    cY=str(int(cY))
-    x1,y1=convertCoordinate(x1,y1,noTranspose)
-    cX,cY=convertCoordinate(cX,cY,noTranspose)
+    x1,y1=convertCoordinate(x1,y1,noTranspose,noInvert)
+    cX,cY=convertCoordinate(cX,cY,noTranspose,noInvert)
     curve=str(-int(curve*10))
 
     return cX,cY,x1,y1,curve
+
+def polygonToLines(polygon):
+    vertexs=polygon['vertex']
+    width=polygon['width']
+    layer=polygon['layer']
+    wires=[]
+    for _i in range(len(vertexs)):
+        nexti=(_i+1)%len(vertexs)
+        x1=vertexs[_i]['x']
+        y1=vertexs[_i]['y']
+        x2=vertexs[nexti]['x']
+        y2=vertexs[nexti]['y']
+        curve=vertexs[_i].get('curve')
+        wire={'x1':x1,'y1':y1,'x2':x2,'y2':y2,'curve':curve,'width':width,'layer':layer}
+        wires.append(wire)
+    return wires
 
 def getTextInfo(text,noTranspose=False):
     global layerIds
@@ -238,11 +254,22 @@ def getTextInfo(text,noTranspose=False):
     return {'text':txtData,'x':x,'y':y,'xSize':xSize,'ySize':ySize,'width':width,'rot':rot,'mirror':mirror,'just':justification,'layer':layer,'style':style}
   
 def getRectInfo(rect):
+    ##have to convert to lines
     pass
 
-def getCircInfo(circ):
-    pass
-
+def getCircInfo(circ,noTranspose=False):
+    radius=convertUnit(circ['radius'])
+    cX,cY=convertCoordinate(circ['x'],circ['y'],noTranspose)
+    width=convertUnit(circ['width'])
+    layer=layerIds.get(circ['layer'])
+    checklist=[radius,cX,cY,width,layer]
+    for element in checklist:
+        if element==None:
+            return None
+    pX=str(int(cX)+int(radius))
+    pY=cY
+    return {'cX':cX,'cY':cY,'pX':pX,'pY':pY,'layer':layer,'width':width}
+    
 def getViaInfo(via):
     x,y=convertCoordinate(via.get('x'),via.get('y'))
     drill=convertUnit(via.get('drill'))
@@ -251,9 +278,6 @@ def getViaInfo(via):
         if element==None:
             return None
     return {'x':x,'y':y,'drill':drill}
-        
-def getPolyInfo(poly):
-    pass
 
 def getRotationInfo(rot):
     mirror=False
@@ -318,8 +342,7 @@ def getPadInfo(pad,modName,modRot,mirror):
         shape='R'
             
     return {'name':name,'drill':drill,'xSize':xSize, 'ySize':ySize,'x':pX,'y':pY,'net':net,'kind':kind,'shape':shape,'layerMask':layerMask,'rot':rot}                     
-
-    
+ 
 def writeEQUIPOT(outFile):
     global myDict
     global signalIds
@@ -335,8 +358,6 @@ def writeEQUIPOT(outFile):
         outFile.write('$EndEQUIPOT\n\n')
 
 #No Text
-#No polyGons
-#No Circs
 #No Rects
 def writeMODULES(outFile):
     global myDict
@@ -361,6 +382,8 @@ def writeMODULES(outFile):
         outFile.write('T1 0 0 0 0 0 0 N I 26 "'+mod['value']+'"\n')
         
         #Drawing
+        
+        #Lines
         if not libInfo.get('wire')==None:
             for wire in libInfo['wire']:
                 w=getWireInfo(wire,True)
@@ -370,6 +393,26 @@ def writeMODULES(outFile):
                     curve=' ' if w['curve']==None else (' '+w['curve']+' ')
                     outFile.write(wtype+w['x1']+' '+w['y1']+' '+w['x2']+' '+w['y2']+curve+w['width']+' '+w['layer']+'\n')
         
+        #PolyGons
+        if not libInfo.get('polygon')==None:
+            for poly in libInfo['polygon']:
+                wires=polygonToLines(poly)
+                for wire in wires:
+                    w=getWireInfo(wire,True)
+                    if not w==None:
+                        wtype='DS ' if w['curve']==None else 'DA '
+                        curve=' ' if w['curve']==None else (' '+w['curve']+' ')
+                        outFile.write(wtype+w['x1']+' '+w['y1']+' '+w['x2']+' '+w['y2']+curve+w['width']+' '+w['layer']+'\n')
+        
+        #circles               
+        if not libInfo.get('circle')==None:
+            for circ in libInfo['circle']:
+                circ=getCircInfo(circ,True)
+                if circ==None:
+                    pass
+                else:
+                    outFile.write('DC '+circ['cX']+' '+circ['cY']+' '+circ['pX']+' '+circ['pY']+' '+circ['width']+' '+circ['layer']+'\n')
+                    
         #PAD Descriptions:
         mirror=mod['mirror']
         allConnects=[]
@@ -395,15 +438,14 @@ def writeMODULES(outFile):
                 
         outFile.write('$EndMODULE '+mod['package']+'\n\n')
 
-#No Polygons
-#No Circles
+
 #No Rectangle
 def writeGRAPHICS(outFile):
     plainWires=myDict['eagle']['drawing']['board']['plain']['wire']
     plainText=myDict['eagle']['drawing']['board']['plain'].get('text')
-#    plainCircles=myDict['eagle']['drawing']['board']['plain']['circle']
+    plainCircles=myDict['eagle']['drawing']['board']['plain']['circle']
 #    plainRects=myDict['eagle']['drawing']['board']['plain']['rectangle']
-#    plainPolys=myDict['eagle']['drawing']['board']['plain']['polygon']
+    plainPolys=myDict['eagle']['drawing']['board']['plain'].get('polygon')
     
     for line in plainWires:        
         info=getWireInfo(line)
@@ -427,7 +469,31 @@ def writeGRAPHICS(outFile):
                 outFile.write('Po '+info['x']+' '+info['y']+' '+info['xSize']+' '+info['ySize']+' '+info['width']+' '+info['rot']+'\n')
                 outFile.write('De '+info['layer']+' '+info['mirror']+' 0000 '+info['style']+' '+info['just']+'\n')
                 outFile.write('$EndTEXTPCB\n\n')
-
+    
+    if not plainPolys==None:
+        for polygon in plainPolys:
+            wires=polygonToLines(polygon)
+            for wire in wires:
+                info=getWireInfo(wire)
+                if not info == None:
+                    curve='900'
+                    shape='0'
+                    if not info.get('curve')==None:
+                        curve=info['curve']
+                        shape='2'
+                    outFile.write('$DRAWSEGMENT\n')         
+                    outFile.write('Po '+shape+' '+info['cX']+' '+info['cY']+' '+info['x2']+' '+info['y2']+' '+info['width']+'\n')
+                    outFile.write('De '+info['layer']+' 0 '+curve+' 0 0\n')
+                    outFile.write('$EndDRAWSEGMENT\n\n')
+                    
+    if not plainCircles==None:
+        for circle in plainCircles:
+            info=getCircInfo(circle)
+            if not info==None:
+                    outFile.write('$DRAWSEGMENT\n')         
+                    outFile.write('Po 3 '+info['cX']+' '+info['cY']+' '+info['pX']+' '+info['pY']+' '+info['width']+'\n')
+                    outFile.write('De '+info['layer']+' 0 900 0 0\n')
+                    outFile.write('$EndDRAWSEGMENT\n\n')
 
 def writeTRACKS(outFile):
     signals=myDict['eagle']['drawing']['board']['signals']

@@ -19,6 +19,8 @@ Files:
 				Graphics
 					Lines
 					Arcs
+					Circles
+					Polygon
 			
 			Signal
 				Connections
@@ -30,7 +32,8 @@ Files:
 			Graphics:
 				Lines
 				Arcs
-				Text 
+				Text
+				Circles
 		
 		Not Yet:
 			Zones 
@@ -39,15 +42,11 @@ Files:
 			Modules:
 				Text
 				Graphics
-					Polygons
-					Circles
 					Rectangles					
 				Names/Values textLayer
 			
 			Graphics:
-				Circles
 				Rectangles
-				Polygons
 			
 		
 		 
