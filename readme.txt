@@ -17,7 +17,8 @@ Files:
 				Names/Values
 				Pads
 				Graphics
-					wires
+					Lines
+					Arcs
 			
 			Signal
 				Connections
@@ -28,6 +29,7 @@ Files:
 			
 			Graphics:
 				Lines
+				Arcs
 				Text 
 		
 		Not Yet:
@@ -35,17 +37,16 @@ Files:
 				(For some reason they show up but can't be filled... then they dissappear)
 			
 			Modules:
+				Text
 				Graphics
-					Arcs
 					Polygons
-					etc...
-					
+					Circles
+					Rectangles					
 				Names/Values textLayer
 			
 			Graphics:
 				Circles
 				Rectangles
-				Arcs
 				Polygons
 			
 		
