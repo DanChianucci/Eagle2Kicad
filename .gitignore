@@ -2,6 +2,10 @@
 /.project
 /.pydevproject
 /*.000
-/*.xml
-/__pycache__/
-/test.py
+/*/*.xml
+/*/*.lbr
+/*/*.sch
+/*/__pycache__/
+/*/__pycache__/*.*
+/*/test.py
+

@@ -3,7 +3,7 @@ Created on Dec 23, 2011
 
 @author: Dan Chianucci
 '''
-from brdParser import brdParser
+from BRD.brdParser import brdParser
 import codecs
 import math
 
