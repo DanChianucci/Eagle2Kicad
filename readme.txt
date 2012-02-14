@@ -1,52 +1,25 @@
-This project is intended to eventually be able to convert an Eagle project to kicad without having eagle installed.
+These python scripts will eventually be able to convert an Eagle 6.0+ 
+Project into a Kicad Project.
+
+For now it is only able to convert .brd files
 
 All scripts are written in the python 3.2 grammer.
-The project is currently in the early stages, so please try it out and report any issues to the issue tracker.
+The project is currently in the early stages, so please try it out and 
+report any issues to the issue tracker.
 
-It will only work with eagle files made with Eagle 6.0 and higher
-
-The board will show up in kicad centered in the red sheet
-
-
-Files:
-	Eagle2kicad.py:
-		Converts an eagle .brd to a kicad .brd so far 
-		
-		So Far: 
-			Modules
-				Names/Values
-				Pads
-				Graphics
-					Lines
-					Arcs
-					Circles
-					Polygon
+So far Converting between Boards does everything except the following:
 			
-			Signal
-				Connections
-				Tracks
-				Vias
-				
-			PCB Edges
-			
-			Graphics:
-				Lines
-				Arcs
-				Text
-				Circles
-		
-		Not Yet:
-			Zones 
-				(For some reason they show up but can't be filled... then they dissappear)
-			
-			Modules:
-				Text
-				Graphics
-					Rectangles					
-				Names/Values textLayer
-			
-			Graphics:
-				Rectangles
+	Zones: they show up but can't be filled...then they dissappear)			
+	Text in modules					
+	Names/Values textLayer in modules			
+	Rectangle graphics
+	
+To use:
+	-copy the Eagle file to the BOARD directory 
+	-run brdConverter.py (in the BOARD directory) 
+	-it will ask for the name of an input file, and output file
+	-the input file is the name of the file you just copied  
+	
 			
 		
 		 

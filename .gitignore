@@ -1,4 +1,5 @@
-/*.brd
+/*/*.brd
+/*/*.000
 /.project
 /.pydevproject
 /*.000
@@ -8,4 +9,6 @@
 /*/__pycache__/
 /*/__pycache__/*.*
 /*/test.py
+Questions.txt
+/ignore/*.*
 
