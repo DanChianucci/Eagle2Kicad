@@ -18,7 +18,12 @@ To use:
 	-copy the Eagle file to the BOARD directory 
 	-run brdConverter.py (in the BOARD directory) 
 	-it will ask for the name of an input file, and output file
-	-the input file is the name of the file you just copied  
+	-the input file is the name of the file you just copied
+
+Library Conversion:
+	Converts Module footprints... (no schematic symbols yet)
+
+Still Testing libconverter, so not supported yet
 	
 			
 		

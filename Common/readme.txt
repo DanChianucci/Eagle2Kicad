@@ -1,1 +1,1 @@
-Note that these files are not implemented yet
+These files contain common classses used by multiple (or all) the converter parts
