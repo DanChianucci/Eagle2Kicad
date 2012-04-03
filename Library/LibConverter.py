@@ -3,81 +3,80 @@ Created on Dec 23, 2011
 
 @author: Dan Chianucci
 '''
-from libParser import libParser
+from xml.etree.ElementTree import ElementTree
+import codecs
+import os
+from Elements import LibModule, Converter
 
-myDict={}
-contactRefs={}
-signalIds={}
-layerIds={}
 
-def getLayerIds():
-    global layerIds
-    layerIds={'1':'15',
-               '2':'14',
-               '3':'13',
-               '4':'12',
-               '5':'11',
-               '6':'10',
-               '7':'9',
-               '8':'8',
-               '9':'7',
-               '10':'6',
-               '11':'5',
-               '12':'4',
-               '13':'3',
-               '14':'2',
-               '15':'1',
-               '16':'0',
-               '20':'28',
-               '21':'21',
-               '22':'20',
-               '25':'25',
-               '26':'25',
-               '27':'26',
-               '28':'26',
-               '29':'23',
-               '30':'22',
-               '31':'19',
-               '32':'18',
-               '35':'17',
-               '36':'16',
-               '51':'26',
-               '52':'27',
-               '95':'26',
-               '96':'27'}
 
-def getContactRefs():
-    global contactRefs
-    signals=myDict['eagle']['drawing']['board']['signals']
+class LibConverter:
+    __slots__=("name","modDir","symDir","tree","converter")
     
-    for signal in signals:
-        sigRefs=signals[signal].get('contactref')
-        if not sigRefs==None:
-            for ref in sigRefs:
-                element = sigRefs[ref]['element']
-                pad=sigRefs[ref]['pad']           
-                
-                if contactRefs.get(element)==None:
-                    contactRefs[element]={}
-                contactRefs[element][pad]=signal
-
-
-def main(inFileName=None,outFileName=None):
-    global myDict
-    if inFileName == None:
-        inFile=open(input("Enter Name of Eagle File: "))
-    else:
-        inFile=open(inFileName)
+    myTree={}
     
-    b=libParser()
-    myDict=b.parse(inFile)
-    getContactRefs()
-    getLayerIds()
-    printKicadFile(outFileName)
+    def __init__(self,fileName):
+        self.name=fileName[:fileName.index('.')]
+        self.modDir="Libraries/Modules"
+        self.symDir="Libraries/Symbols"
+        xmlTree = ElementTree(file=fileName)
+        self.tree=xmlTree.getroot()
+        self.converter=Converter()
 
-def printKicadFile(outFileName=None):
-    pass
+        
+    
+    def writeLibFiles(self):
+        os.makedirs(self.modDir,exist_ok=True)
+        os.makedirs(self.symDir,exist_ok=True)
+        
+        modFileName=self.modDir+"/"+self.name+".mod"
+        symFileName=self.symDir+"/"+self.name+".lib"
+        docFileName=self.symDir+"/"+self.name+".dcm"
+        
+        modFile=codecs.open(modFileName,'w','utf-8')
+        modFile.write("PCBNEW-LibModule-V0   00/00/0000-00:00:00\n")
+        modFile.close()
+        modFile=codecs.open(modFileName,'a','utf-8')
+        
+        symFile=codecs.open(symFileName,'w','utf-8')
+        symFile.write("EESchema-LIBRARY Version 0.0  00/00/0000-00:00:00\n")
+        symFile.close()
+        symFile=codecs.open(symFileName,'a','utf-8')
+        
+        docFile=codecs.open(docFileName,'w','utf-8')
+        docFile.write("EESchema-DOCLIB  Version 0.0  Date: 00/00/0000 00:00:00\n")
+        docFile.close()
+        docFile=codecs.open(docFileName,'a','utf-8')
+        
+        libnode=self.tree.find("drawing").find("library")
+        packages=libnode.find("packages").findall("package")
+        symbols=libnode.find("symbols").findall("symbol")
+        
+        modFile.write("$INDEX\n")
+        for package in packages:
+            modFile.write(str(package.get("name"))+"\n")
+        modFile.write("$EndINDEX\n")
+        
+        for package in packages:
+            self.writeModule(modFile,package)
+
+        for symbol in symbols:
+            self.writeSymbol(symFile,symbol)
+            self.writeDoc(docFile,symbol)
+
+        modFile.write("$EndLIBRARY")
+        modFile.close()
+        symFile.close()
+        docFile.close()
+    def writeModule(self,modFile,node):
+        mod=LibModule(node,self.converter)
+        mod.write(modFile)
+    def writeSymbol(self,symFile,node):
+        pass
+    def writeDoc(self,docFile,node):
+        pass
 
 if __name__ == '__main__':
-    main()
+    a= LibConverter("myLib.xml")
+    a.writeLibFiles()
 
