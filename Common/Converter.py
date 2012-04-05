@@ -110,10 +110,10 @@ class Converter(object):
 
         mirror=False
         spin=False
+        rot=0
         
-        if rotString==None:
-            rot=0
-        else:
+        if str(rotString) != "None":
+            #TODO MSR it might be mirror and spin, so do by str.getIndex("M")...
             if rotString[0]=='M':
                 mirror=True
                 rot=int(float(rotString[2:])*10)

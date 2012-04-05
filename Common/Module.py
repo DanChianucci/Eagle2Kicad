@@ -24,7 +24,7 @@ class Module(object):
             rotation = converter.convertRotation(elementNode.get("rot"))
             self.rotation=rotation.get('rot')
             self.mirror = rotation.get('mirror')
-            self.layer = LayerIds.getLayerId((elementNode.get("layer")))
+            self.layer= 0 if self.mirror else 15
         
         if contacts==None:
             self.contacts={}
@@ -117,7 +117,7 @@ class Module(object):
 
     def write(self, outFile):
         outFile.write("$MODULE " + self.package + "\n")
-        outFile.write("Po " + str(self.x) + " " + str(self.y) + " " + str(self.rotation) + " " + str(self.layer) + "00000000 00000000 ~~\n")
+        outFile.write("Po " + str(self.x) + " " + str(self.y) + " " + str(self.rotation) + " " + str(self.layer)+" "+ "00000000 00000000 ~~\n")
         outFile.write("Li " + self.package + "\n")
         if self.description != "":
             outFile.write("Cd " + self.description + "\n")
