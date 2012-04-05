@@ -11,4 +11,7 @@
 /*/test.py
 Questions.txt
 /ignore/*.*
+/Library/Libraries/*
+/Library/Libraries/*/*.*
+
 

@@ -132,7 +132,7 @@ def printKicadFile(outFileName=None):
     if outFileName==None:
         outFileName=input("Output File: ")
     out=codecs.open(outFileName,'w','utf-8')
-    out.write('PCBNEW-BOARD Version 0 date 0/0/0000 00:00:00\n\n')
+    out.write('PCBNEW-BOARD Version 0 date 0/0/0000 00:00:00\n')
     out.close()
     out=codecs.open(outFileName,'a','utf-8')
 
@@ -558,7 +558,7 @@ def writeEQUIPOT(outFile):
         outFile.write('$EQUIPOT\n')
         outFile.write('Na '+str(i)+' '+name+'\n')
         outFile.write('St~\n')
-        outFile.write('$EndEQUIPOT\n\n')
+        outFile.write('$EndEQUIPOT\n')
 
 #No Text
 #No Rects
@@ -648,7 +648,7 @@ def writeMODULES(outFile):
             outFile.write('Po '+p['x']+' '+p['y']+'\n')                      
             outFile.write('$EndPAD\n')
                 
-        outFile.write('$EndMODULE '+mod['package']+'\n\n')
+        outFile.write('$EndMODULE '+mod['package']+'\n')
 
 
 #No Rectangle
@@ -679,7 +679,7 @@ def writeGRAPHICS(outFile):
             outFile.write('$DRAWSEGMENT\n')         
             outFile.write('Po '+shape+' '+info['x1']+' '+info['y1']+' '+info['x2']+' '+info['y2']+' '+info['width']+'\n')
             outFile.write('De '+info['layer']+' 0 '+curve+' 0 0\n')
-            outFile.write('$EndDRAWSEGMENT\n\n')
+            outFile.write('$EndDRAWSEGMENT\n')
             
     if not plainText==None:
         for text in plainText:
@@ -689,7 +689,7 @@ def writeGRAPHICS(outFile):
                 outFile.write('Te "'+info['text']+'"\n')
                 outFile.write('Po '+info['x']+' '+info['y']+' '+info['xSize']+' '+info['ySize']+' '+info['width']+' '+info['rot']+'\n')
                 outFile.write('De '+info['layer']+' '+info['mirror']+' 0000 '+info['style']+' '+info['just']+'\n')
-                outFile.write('$EndTEXTPCB\n\n')
+                outFile.write('$EndTEXTPCB\n')
     
     if not plainPolys==None:
         for polygon in plainPolys:
@@ -705,7 +705,7 @@ def writeGRAPHICS(outFile):
                     outFile.write('$DRAWSEGMENT\n')         
                     outFile.write('Po '+shape+' '+info['cX']+' '+info['cY']+' '+info['x2']+' '+info['y2']+' '+info['width']+'\n')
                     outFile.write('De '+info['layer']+' 0 '+curve+' 0 0\n')
-                    outFile.write('$EndDRAWSEGMENT\n\n')
+                    outFile.write('$EndDRAWSEGMENT\n')
                     
     if not plainCircles==None:
         for circle in plainCircles:
@@ -714,7 +714,7 @@ def writeGRAPHICS(outFile):
                     outFile.write('$DRAWSEGMENT\n')         
                     outFile.write('Po 3 '+info['cX']+' '+info['cY']+' '+info['pX']+' '+info['pY']+' '+info['width']+'\n')
                     outFile.write('De '+info['layer']+' 0 900 0 0\n')
-                    outFile.write('$EndDRAWSEGMENT\n\n')
+                    outFile.write('$EndDRAWSEGMENT\n')
 
 def writeTRACKS(outFile):
     """
@@ -747,7 +747,7 @@ def writeTRACKS(outFile):
                     outFile.write('Po 3 '+v['x']+' '+v['y']+' '+v['x']+' '+v['y']+' '+v['drill']+'\n')                    
                     outFile.write('De 15 1 '+netCode+' 0 0\n')
             
-    outFile.write('$EndTRACK\n\n')
+    outFile.write('$EndTRACK\n')
 
 
 def writeZONES(outFile):
@@ -779,7 +779,7 @@ def writeZONES(outFile):
                         outFile.write('ZCorner '+vertex['x']+' '+vertex['y']+' '+start+'\n')
                     
                         
-    outFile.write('$EndCZONE_OUTLINE\n\n')
+    outFile.write('$EndCZONE_OUTLINE\n')
  
 
 if __name__ == '__main__':

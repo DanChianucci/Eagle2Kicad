@@ -5,7 +5,7 @@ Created on Apr 2, 2012
 '''
 
 def getLayerId(layer):
-        myDict=   {'1':'15',
+        myDict=   {'1':'15',    #Component Layer (Top)
                    '2':'14',
                    '3':'13',
                    '4':'12',
@@ -20,23 +20,53 @@ def getLayerId(layer):
                    '13':'3',
                    '14':'2',
                    '15':'1',
-                   '16':'0',
-                   '20':'28',
-                   '21':'21',
-                   '22':'20',
-                   '25':'25',
-                   '26':'25',
-                   '27':'26',
-                   '28':'26',
-                   '29':'23',
-                   '30':'22',
-                   '31':'19',
-                   '32':'18',
-                   '35':'17',
-                   '36':'16',
-                   '51':'26',
-                   '52':'27',
-                   '95':'26',
-                   '96':'27'}
+                   '16':'0',    #Copper Layer (Bottom)
+                   '20':'28',   #Edge Layer  
+                   '21':'21',   #Component Silk Screen
+                   '22':'20',   #Copper Silk Screen
+                   '25':'26',   #tNames -> ECO1
+                   '26':'27',   #bNames -> ECO2
+                   '27':'26',   #tValues -> ECO1
+                   '28':'27',   #bValues -> ECO2
+                   '29':'23',   #Component Solder Mask
+                   '30':'22',   #Copper Solder Mask
+                   '31':'19',   #Component Solderpaste
+                   '32':'18',   #Copper Solderpaste
+                   '35':'17',   #Component Adhesive
+                   '36':'16',   #Copper Adhesive
+                   '51':'25',   #tDocu -> Comments
+                   '52':'25'}   #bDocu -> Coments
+        
+        if myDict.get(layer)==None:
+            return '24'     #if its not in the dict put it on the draw layer
         
         return myDict.get(layer)
+
+def makeLayerMask(layerList):
+    pass
+
+def makeViaMask(extent):
+    hexDict={'0':'0',
+         '1':'1',
+         '2':'2',
+         '3':'3',
+         '4':'4',
+         '5':'5',
+         '6':'6',
+         '7':'7',
+         '8':'8',
+         '9':'9',
+         '10':'A',
+         '11':'B',
+         '12':'C',
+         '13':'D',
+         '14':'E',
+         '15':'F'}
+    extent=extent.split("-")
+    extent[0]=getLayerId(extent[0])
+    extent[1]=getLayerId(extent[1])
+    extent[0]=hexDict[extent[0]]
+    extent[1]=hexDict[extent[1]]
+    return extent[1]+extent[0]
+
+    
