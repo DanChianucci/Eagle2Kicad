@@ -110,7 +110,7 @@ class Board(object):
                 self.tracks.append(Track(track,converter,netCode))
             for via in vias:
                 self.tracks.append(Via(via,converter,netCode))
-            for zone in zones:#TODO nodes
+            for zone in zones:#TODO Zones Support Board
                 print("Warning: zones are not supported")
     
     def getGraphics(self,plain,converter):
@@ -130,12 +130,13 @@ class Board(object):
         
        
     def write(self,outFile):
-        #TODO write Zones
+        
         outFile.write('PCBNEW-BOARD Version 0 date 0/0/0000 00:00:00\n')
         self.writeEQUIPOT(outFile)
         self.writeMODULES(outFile)
         self.writeGRAPHICS(outFile)
         self.writeTRACKS(outFile)
+        #TODO write Zones
         outFile.write("$EndBOARD")
    
     def writeEQUIPOT(self,outFile):

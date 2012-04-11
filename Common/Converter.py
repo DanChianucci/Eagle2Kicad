@@ -123,3 +123,11 @@ class Converter(object):
             else:
                 rot=int(float(rotString[1:])*10)
         return {'rot':rot,'mirror':mirror,'spin':spin}
+
+class SchemConverter(Converter):
+    def __init__(self):
+        Converter.__init__(self,None)
+        self.factor=self.factor=1/(25.4)*1000
+    
+    def convertCoordinate(self,x,y,noTranspose="NotUsed",noInvert="notUsed"):
+        return Converter.convertCoordinate(self,x,y,True,True)

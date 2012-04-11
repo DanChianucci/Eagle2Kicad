@@ -3,8 +3,9 @@ Created on Apr 3, 2012
 
 @author: Dan
 '''
-from Converter import Converter
+from Converter import Converter, SchemConverter
 from Module import Module
+from Symbol import Symbol
 from xml.etree.ElementTree import ElementTree
 
 class Library(object):
@@ -25,6 +26,7 @@ class Library(object):
         
         if converter==None:
             converter=Converter()
+        symConverter=SchemConverter()
 
         self.modules=[]
         self.symbols=[]
@@ -35,9 +37,9 @@ class Library(object):
         if packages !=None:
             for package in packages:
                 self.modules.append(Module(package,converter))
-#        if symbols!=None:
-#            for symbol in symbols:
-#                self.symbols[symbol.get("name")]=Symbol(symbol)
+        if symbols!=None:
+            for symbol in symbols:
+                self.symbols.append(Symbol(symbol,symConverter))
         
     def writeLibrary(self, modFile=None , symFile=None , docFile=None ):
         if modFile != None:
@@ -63,22 +65,28 @@ class Library(object):
         
     def writeSymFile(self,symFile):
         symFile.write("EESchema-LIBRARY Version 0.0  00/00/0000-00:00:00\n")
+        for symbol in self.symbols:
+            symbol.write(symFile)
+        symFile.write("# End Library")
 
     def writeDocFile(self,docFile):
         docFile.write("EESchema-DOCLIB  Version 0.0  Date: 00/00/0000 00:00:00\n")
 
 if __name__=="__main__":
-    fileName=input("Input Filename: ")
-    outFileName=input("Output Filename: ")
+    fileName="untitled.lbr"#input("Input Filename: ")
+    modFileName="mods.mod"#input("Module Output Filename: ")
+    symFileName="l.lib"#input("Symbol Output Filename: ")
     
     name=fileName.replace("/","\\")
     name=name.split("\\")[-1]
     name=name.split(".")[0]
+    
     node = ElementTree(file=fileName)
     node = node.getroot()
     node = node.find("drawing").find("library")
     lib=Library(node,name)    
-    file=open(outFileName,"a")
-    lib.writeLibrary(file)
+    modFile=open(modFileName,"a")
+    symFile=open(symFileName,"a")
+    lib.writeLibrary(modFile,symFile)
     print("DONE!")         
         

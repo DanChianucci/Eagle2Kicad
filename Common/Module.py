@@ -70,20 +70,15 @@ class Module(object):
             for circ in circles:
                 circ = Circle(circ, converter, True)
                 self.drawings.append(circ)
-                
-#        rects = node.findall("rectangle")
-#        if rects != None:
-#            for rect in rects:
-#                rect=Rectangle(rect)
-#                self.drawings.append(rect)            
-
-        #TODO element Node also will hold value and name if it has one
+        
+        #TODO Rect support in Module
+        
         self.texts = []
-        texts = node.findall("text")
         #TODO replacing the ref with the actual name will mess up the positioning
+        texts = node.findall("text")
         if texts != None:
             for text in texts:
-                text = Text(text, converter, True, True)
+                text = Text(text, converter, True)
                 if text.val == ">NAME":
                     if elementNode != None:
                         text.val=elementNode.get("name")
@@ -100,8 +95,7 @@ class Module(object):
         for hole in holes:
                 hole = Hole(hole, converter, True)
                 self.pads.append(hole)
-        
-        #TODO give it the correct contact refs
+
         
         pads = node.findall("pad")
         for pad in pads:
@@ -150,7 +144,7 @@ class Pad(object):
     __slots__ = ("name", "drill", "xSize", "ySize", "x", "y", "contact", "kind", "shape", "layerMask", "rot")
 
     def __init__(self, node, converter,modRot=0,modMirror=False,contact=None):
-        #TODO give pad a contactRef
+        #PAD Shape: (square | round | octagon | long | offset)
         """
         Gets info for a given pad
         
@@ -169,7 +163,7 @@ class Pad(object):
         if shapeType == 'pad':
             drill = converter.convertUnit(node.get('drill'))
             if node.get('diameter') == None:
-                diameter = str(int(int(drill) * 1.5))#TODO find default diameter for vias
+                diameter = str(int(int(drill) * 1.5))#TODO find default diameter for vias i think its 0
             else:
                 diameter = converter.convertUnit(node.get('diameter'))
             xSize = diameter
@@ -178,7 +172,7 @@ class Pad(object):
             layerMask = '00C0FFFF'#00C0FFFF should tell it to go through all layers
             shape = 'O'
 
-        elif shapeType == 'smd':#TODO roundness
+        elif shapeType == 'smd':#TODO smd roundness
             drill = 0
             xSize = converter.convertUnit(node.get('dx'))
             ySize = converter.convertUnit(node.get('dy'))
@@ -233,7 +227,6 @@ class Hole(object):
         self.drill = str(drill)
 
     def moduleRep(self):
-        #TODO Hole is still untested
         myString = '$PAD\n'
         myString += 'Sh \"Hole\" C ' + self.drill + ' ' + self.drill + ' 0 0 0\n'
         myString += 'Dr ' + self.drill + ' 0 0\n'

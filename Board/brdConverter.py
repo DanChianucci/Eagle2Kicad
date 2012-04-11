@@ -394,8 +394,7 @@ def getRotationInfo(rot):
     
     Returns:
         a kicad formatted dict with keys:
-            rot,mirror,spin
-     
+            rot,mirror,spin     
     """
 
     mirror=False
