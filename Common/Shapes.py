@@ -7,7 +7,7 @@ import math
 import LayerIds
 
 class Line(object):
-    __slots__=('x1','y1','x2','y2','width','layer','curve')
+    __slots__=('x1','y1','x2','y2',"cX","cY",'width','layer','curve')
     
     def __init__(self,node,converter,noTranspose=False):
         self.getWireInfo(node,converter,noTranspose)
@@ -31,13 +31,18 @@ class Line(object):
         width=converter.convertUnit(wire.get('width'))
         layer=LayerIds.getLayerId(wire.get('layer'))
         curve=wire.get('curve')
-        if not curve==None:
-            x1,y1,x2,y2,curve=self.getWireArcInfo(wire,converter,noTranspose)
+        if curve==None:
+            cX=(x1+x2)//2
+            cY=(y1+y2)//2
+        else:
+            cX,cY,curve=self.getWireArcInfo(wire,converter,noTranspose)
                 
         self.x1=str(x1)
         self.y1=str(y1)
         self.x2=str(x2)
         self.y2=str(y2)
+        self.cX=str(cX)
+        self.cY=str(cY)
         self.width=str(width)
         self.layer=str(layer)
         self.curve=str(curve)
@@ -96,32 +101,31 @@ class Line(object):
             yChange=-yChange    
         cX=mX+xChange
         cY=mY+yChange
-        x1,y1=converter.convertCoordinate(x1,y1,noTranspose,noInvert)
         cX,cY=converter.convertCoordinate(cX,cY,noTranspose,noInvert)
         curve=str(-int(curve*10))
-        return cX,cY,x1,y1,curve
+        return cX,cY,curve
      
     def moduleRep(self):
-        stype="DS " if self.curve=="None" else "DA "
-        curve=" " if self.curve=="None" else " "+str(self.curve)+" "
-        
-        myString=stype+str(self.x1)+" "+str(self.y1)+" "+str(self.x2)+" "+str(self.y2)
-        myString+=curve+str(self.width)+" "+str(self.layer)+"\n"
-        
+        myString=""        
+        if self.curve=="None":
+            myString+="DS "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" "+self.width+" "+self.layer+"\n"
+        else:     
+            myString+="DA "+self.cX+" "+self.cY+" "+self.x1+" "+self.y1+" "+self.curve+" "+self.width+" "+self.layer+"\n"
         return myString
 
     def boardRep(self):
+        myString=""
         if self.curve=="None":
-            shape='0'
-            curve='900'
+            myString+="$DRAWSEGMENT\n"
+            myString+="Po 0 "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" "+self.width+"\n"
+            myString+="De "+self.layer+" 0 900 0 0\n"
+            myString+="$EndDRAWSEGMENT\n"
         else:
-            shape='2'
-            curve=self.curve
-        
-        myString="$DRAWSEGMENT\n"
-        myString+="Po "+shape+" "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" "+self.width+"\n"
-        myString+="De "+self.layer+" 0 "+curve+" 0 0\n"
-        myString+="$EndDRAWSEGMENT\n"
+            curve=self.curve        
+            myString="$DRAWSEGMENT\n"
+            myString+="Po 2 "+self.cX+" "+self.cY+" "+self.x1+" "+self.y1+" "+self.width+"\n"
+            myString+="De "+self.layer+" 0 "+curve+" 0 0\n"
+            myString+="$EndDRAWSEGMENT\n"
         return myString
     
     def symRep(self):
@@ -129,7 +133,7 @@ class Line(object):
             myString="P 2 0 0 "+self.width+" "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" N\n"
             return myString
         else:#TODO Curve Support in symbols lines
-            myString="P 2 0 0 "+self.width+" "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" N\n"
+            myString="P 2 0 0 "+self.width+" "+self.cX+" "+self.cY+" "+self.x1+" "+self.y1+" N\n"
             return myString       
     
 class Track(Line):
@@ -282,7 +286,7 @@ class Text(object):
         spin=rot['spin']
         rot=rot['rot']
         
-        rot=(rot+3600)%3600
+        rot=(rot+3600)%3600   #only work with pos angles
     
 
         if rot%900 != 0:
@@ -321,6 +325,9 @@ class Text(object):
             
             hJust=oppositeDict[hJust]
             vJust=oppositeDict[vJust]
+        
+        if not spin and rot>900 and rot<=2700:
+            rot=rot-1800
             
             
         self.rot=str(rot)
@@ -386,32 +393,46 @@ class Text(object):
         Y=str((int(self.y)+dY))
         return X,Y
 
-    def getBoardOffset(self):
+    def getBoardOffset(self): 
+
+#        if (rot+3600)%3600==0:
+#            dY-offset*sign)
+#        elif(rot+3600)%3600==900:
+#            dX-offset*sign)
+#        elif(rot+3600)%3600==1800:
+#            dY=offset*sign)
+#        elif(rot+3600)%3600==2700:
+#            dX=offset*sign)
+        #Messed it up
         #convert whatever it is to center-LCR:
         dX,dY=0,0        
         rot=int(self.rot)
         vJust=self.vJust
-        size=int(self.size)
-           
-        if rot==0 or rot==1800:
-            if vJust=="top":
-                dY=-size//2
-            if vJust=="bottom":
-                dY=size//2
-                
-        elif rot==900 or rot==2700:
-            if vJust=="top":
-                dX=-size//2
-            if vJust=="bottom":
-                dX=size//2
+        size=int(self.size)        
+        vsign=0 #if vjust is center
+        
+        if vJust=="top":
+            vsign=-1
+        if vJust=="bottom": 
+            vsign=1
+            
+        offset=size//2
+        
+        if rot==0:
+            dY=-offset*vsign
+        elif rot==900:
+            dX=-offset*vsign
+        elif rot==1800:
+            dY=offset*vsign
+        elif rot==2700:
+            dX=offset*vsign
                 
         X=str(int(int(self.x)+dX))
         Y=str((int(self.y)+dY))
-        return X, Y
         return X,Y
 
     def getSchemOffset(self):
-        #dont need to force anything
+        #TODO Schem only allow s Bottom-Left (right,down), Bottom-Right(left,up), 
         return self.x,self.y
 
 
