@@ -149,7 +149,7 @@ class Track(Line):
         myString+="De "+self.layer+" 0 "+self.netCode+" 0 0\n"
         return myString
 
-class Via():
+class Via(object):
     __slots__=("x","y","drill","diameter","extent","shape","netCode")
     
     def __init__(self,node,converter,netCode='0',noTranspose=False):
@@ -183,8 +183,7 @@ class Via():
         myString+="De 15 1 "+self.netCode+" 0 0\n"
 
         return myString
-        
-        
+            
 class Polyline(object):
     __slots__=("lines")
     

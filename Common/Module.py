@@ -36,7 +36,7 @@ class Module(object):
         
         description = node.find("description")
         if description != None:
-            self.description = str(description.text)
+            self.description = str(description.text).split('\n')[0]
         else:
             self.description = ""
 

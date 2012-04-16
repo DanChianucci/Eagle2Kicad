@@ -110,7 +110,7 @@ class Board(object):
                 self.tracks.append(Track(track,converter,netCode))
             for via in vias:
                 self.tracks.append(Via(via,converter,netCode))
-            for zone in zones:#TODO Zones Support Board
+            for _zone in zones:#TODO Zones Support Board
                 print("Warning: zones are not supported")
     
     def getGraphics(self,plain,converter):
@@ -137,7 +137,7 @@ class Board(object):
         self.writeGRAPHICS(outFile)
         self.writeTRACKS(outFile)
         #TODO write Zones
-        outFile.write("$EndBOARD")
+        outFile.write("$EndBOARD\n")
    
     def writeEQUIPOT(self,outFile):
         """
@@ -170,6 +170,7 @@ class Board(object):
     def writeGRAPHICS(self,outFile):
         for graphic in self.plain:
             outFile.write(graphic.boardRep())
+
 if __name__ == "__main__":
         fileName=input("Input Filename: ")
         outFileName=input("Output Filename: ")
