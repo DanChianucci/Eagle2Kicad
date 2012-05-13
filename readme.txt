@@ -4,6 +4,13 @@ Project into a Kicad Project.
 Hurray Finally able to convert Libraries as well...
 However so far it will only convert the footprints, not the symbols
 
+NOTICE!!!!!!!!!!!!!!!!!!!!!
+If you are getting errors similar to 
+ImportError: No module named SomeModuleName
+Try copying all of the .py files into a single directory and then running it...
+In the mean time I am trying to fix this issue
+
+C:\Users\Dan\Workspaces\Python\Eagle2Kicad\Board>
 
 All scripts are written in the python 3.2 grammer.
 The project is currently in the early stages, so please try it out and 
