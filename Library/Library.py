@@ -3,6 +3,9 @@ Created on Apr 3, 2012
 
 @author: Dan
 '''
+import sys
+sys.path.append("..\Common")
+
 from Converter import Converter, SchemConverter
 from Module import Module
 from Symbol import Symbol
@@ -73,9 +76,9 @@ class Library(object):
         docFile.write("EESchema-DOCLIB  Version 0.0  Date: 00/00/0000 00:00:00\n")
 
 if __name__=="__main__":
-    fileName="untitled.lbr"#input("Input Filename: ")
-    modFileName="mods.mod"#input("Module Output Filename: ")
-    symFileName="l.lib"#input("Symbol Output Filename: ")
+    fileName=input("Input Filename: ")
+    modFileName=input("Module Output Filename: ")
+    symFileName=input("Symbol Output Filename: ")
     
     name=fileName.replace("/","\\")
     name=name.split("\\")[-1]

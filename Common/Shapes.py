@@ -183,6 +183,43 @@ class Via(object):
         myString+="De 15 1 "+self.netCode+" 0 0\n"
 
         return myString
+
+class Zone(object):
+    
+    def __init__(self,node,converter,node_name,netCode='0',noTranspose=False):
+        self.vertexs = node.findall('vertex')
+        self.width = converter.convertUnit(node.get('width'))
+        self.layer = LayerIds.getLayerId(node.get('layer'))
+        self.isolate = converter.convertUnit(node.get('isolate'))
+        self.corners = len(self.vertexs)
+        self.cornerstr = ""
+        self.name = node_name
+        
+        for _i in range(len(self.vertexs)):
+            x=self.vertexs[_i].get('x')
+            y=self.vertexs[_i].get('y')
+            x,y=converter.convertCoordinate(x,y,noTranspose)
+            string = "ZCorner " + str(x) + " " + str(y);
+            if _i == self.corners-1:
+                string += " 1\n"
+            else:
+                string += " 0\n"
+            self.cornerstr+=string
+        self.netCode=netCode
+        if netCode=='0':
+            print("Warning: track with netCode 0")
+    
+    def boardRep(self):
+        myString= "$CZONE_OUTLINE\n"
+        myString+="ZInfo 0 " + str(self.netCode) + ' "' + str(self.name) + '"\n' 
+        myString+="ZLayer " + str(self.layer) + "\n"
+        myString+="ZAux " + str(self.corners) + " E\n"
+        myString+="ZClearance " + str(self.isolate) + " T\n"
+        myString+="ZMinThickness " + str(self.width) + "\n"
+        myString+=self.cornerstr
+        myString+="$endCZONE_OUTLINE\n"
+        return myString
+
             
 class Polyline(object):
     __slots__=("lines")
@@ -343,11 +380,14 @@ class Text(object):
     def boardRep(self):
         X,Y=self.getBoardOffset()
         hjustify=self.hJust[0].capitalize()
-        myString='$TEXTPCB\n'         
-        myString+='Te "'+self.val+'"\n'
-        myString+='Po '+X+' '+Y+' '+self.size+' '+self.size+' '+self.width+' '+self.rot+'\n'
-        myString+='De '+self.layer+' '+self.mirror+' 0000 '+self.style+' '+hjustify+'\n'
-        myString+='$EndTEXTPCB\n'
+        try:
+            myString='$TEXTPCB\n'         
+            myString+='Te "'+self.val+'"\n'
+            myString+='Po '+X+' '+Y+' '+self.size+' '+self.size+' '+self.width+' '+self.rot+'\n'
+            myString+='De '+self.layer+' '+self.mirror+' 0000 '+self.style+' '+hjustify+'\n'
+            myString+='$EndTEXTPCB\n'
+        except TypeError:
+            return '\n'
         return myString
     
     def symRep(self):

@@ -3,18 +3,20 @@ Created on Apr 3, 2012
 
 @author: Dan
 '''
+import sys
+sys.path.append("..\Common")
 
 from Converter import Converter
 from Module import Module
 from xml.etree.ElementTree import ElementTree
-from Shapes import Track, Via, Line, Circle, Polyline, Text
+from Shapes import Track, Via, Line, Circle, Polyline, Text, Zone
 
 class Board(object):
     '''
     classdocs
     '''
 
-    __slots__=("signals","contacts","elements","tracks","plain","Zones")
+    __slots__=("signals","contacts","elements","tracks","plain","Zones","polygon")
     
     def __init__(self,node,converter=None):        
         if converter==None:
@@ -24,6 +26,7 @@ class Board(object):
         self.contacts={}
         self.elements=[]
         self.tracks=[]
+        self.polygon=[]
         self.plain=[]
         
         signals=node.find("drawing").find("board").find("signals")       
@@ -110,8 +113,9 @@ class Board(object):
                 self.tracks.append(Track(track,converter,netCode))
             for via in vias:
                 self.tracks.append(Via(via,converter,netCode))
-            for _zone in zones:#TODO Zones Support Board
-                print("Warning: zones are not supported")
+            for _zone in zones:
+                self.polygon.append(Zone(_zone,converter,signal.get("name"),netCode))
+                
     
     def getGraphics(self,plain,converter):
         wires=plain.findall("wire")
@@ -136,7 +140,6 @@ class Board(object):
         self.writeMODULES(outFile)
         self.writeGRAPHICS(outFile)
         self.writeTRACKS(outFile)
-        #TODO write Zones
         outFile.write("$EndBOARD\n")
    
     def writeEQUIPOT(self,outFile):
@@ -166,6 +169,8 @@ class Board(object):
         for track in self.tracks:
             outFile.write(track.boardRep())
         outFile.write("$EndTRACK\n")
+        for zones in self.polygon:
+            outFile.write(zones.boardRep())
 
     def writeGRAPHICS(self,outFile):
         for graphic in self.plain:
