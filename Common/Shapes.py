@@ -219,8 +219,7 @@ class Zone(object):
         myString+=self.cornerstr
         myString+="$endCZONE_OUTLINE\n"
         return myString
-
-            
+       
 class Polyline(object):
     __slots__=("lines")
     
@@ -394,8 +393,8 @@ class Text(object):
         orientation="0"
         if self.rot=="90" or self.rot=="270":
             orientation="1"
-        hJust=self.hJust[0].capitalise()
-        vJust=self.vJust[0].capitalise()
+        hJust=self.hJust[0].capitalize()
+        vJust=self.vJust[0].capitalize()
         
         myString="T "+orientation+" "+self.x+" "+self.y+" "+self.width+" 0 0 0 "+self.val+" Normal 0 "+hJust+" "+vJust+"\n"
         return myString
@@ -473,19 +472,3 @@ class Text(object):
     def getSchemOffset(self):
         #TODO Schem only allow s Bottom-Left (right,down), Bottom-Right(left,up), 
         return self.x,self.y
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
