@@ -113,15 +113,17 @@ class Converter(object):
         rot=0
         
         if str(rotString) != "None":
-            #TODO MSR it might be mirror and spin, so do by str.getIndex("M")...
-            if rotString[0]=='M':
+            #mirror the rotation
+            if rotString.find("M")>=0:
                 mirror=True
-                rot=int(float(rotString[2:])*10)
-            elif rotString[0]=='S':
+                rotString=rotString.replace("M","")
+            #spin the rotation    
+            if rotString.find("S")>=0:
                 spin=True
-                rot=int(float(rotString[2:])*10)
-            else:
-                rot=int(float(rotString[1:])*10)
+                rotString=rotString.replace("S","")
+            
+            rotString=rotString.replace("R","")    
+            rot=int(float(rotString)*10)
         return {'rot':rot,'mirror':mirror,'spin':spin}
 
 class SchemConverter(Converter):
