@@ -129,7 +129,7 @@ class Line(object):
         return myString
     
     def symRep(self):
-        if self.curve=="NONE":
+        if self.curve == "None":
             myString="P 2 0 0 "+self.width+" "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" N\n"
             return myString
         else:#TODO Curve Support in symbols lines
