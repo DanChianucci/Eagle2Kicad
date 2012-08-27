@@ -252,6 +252,12 @@ class Polyline(object):
         for line in self.lines:
             myString+=line.symRep()
         return myString
+    
+    def boardRep(self):
+        myString=""
+        for line in self.lines:
+            myString+=line.boardRep()
+        return myString
         
 class Circle(object):
     __slots__=('cX','cY','pX','pY','layer','width',"radius")
