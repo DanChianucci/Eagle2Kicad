@@ -190,7 +190,13 @@ class Zone(object):
         self.vertexs = node.findall('vertex')
         self.width = converter.convertUnit(node.get('width'))
         self.layer = LayerIds.getLayerId(node.get('layer'))
-        self.isolate = converter.convertUnit(node.get('isolate'))
+        
+        isolate=node.get('isolate')
+        if isolate is not None:
+            self.isolate = converter.convertUnit(isolate)
+        else:
+            self.isolate=0
+            
         self.corners = len(self.vertexs)
         self.cornerstr = ""
         self.name = node_name

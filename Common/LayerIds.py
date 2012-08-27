@@ -35,7 +35,7 @@ def getLayerId(layer):
                    '35':'17',   #Component Adhesive
                    '36':'16',   #Copper Adhesive
                    '51':'25',   #tDocu -> Comments
-                   '52':'25'}   #bDocu -> Coments
+                   '52':'25'}   #bDocu -> Comments
         
         if myDict.get(layer)==None:
             return '24'     #if its not in the dict put it on the draw layer
