@@ -53,7 +53,7 @@ class Library(object):
             self.writeDocFile(docFile)
     
     def writeModFile(self,modFile):
-        modFile.write("PCBNEW-LibModule-V0   00/00/0000-00:00:00\n")
+        modFile.write("PCBNEW-LibModule-V1   00/00/0000-00:00:00\n")
         
         modFile.write("$INDEX\n")
         for module in self.modules:
