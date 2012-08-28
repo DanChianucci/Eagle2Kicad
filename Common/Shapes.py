@@ -407,8 +407,8 @@ class Text(object):
             orientation="1"
         hJust=self.hJust[0].capitalize()
         vJust=self.vJust[0].capitalize()
-        
-        myString="T "+orientation+" "+self.x+" "+self.y+" "+self.width+" 0 0 0 "+self.val+" Normal 0 "+hJust+" "+vJust+"\n"
+        #TODO fix text size
+        myString="T "+orientation+" "+self.x+" "+self.y+" "+self.size+" 0 0 0 "+self.val+" Normal 0 "+hJust+" "+vJust+"\n"
         return myString
 
     def getModuleFieldOffset(self):
