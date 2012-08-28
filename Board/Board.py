@@ -4,12 +4,17 @@ Created on Apr 3, 2012
 @author: Dan
 '''
 import sys
-sys.path.append("..\Common")
+sys.path.append("../Common")
 
 from Converter import Converter
 from Module import Module
 from xml.etree.ElementTree import ElementTree
 from Shapes import Track, Via, Line, Circle, Polyline, Text, Zone
+
+from tkinter import Tk
+from tkinter.filedialog   import askopenfilename     
+from tkinter.filedialog   import asksaveasfilename
+from tkinter.messagebox		import askyesno
 
 class Board(object):
     '''
@@ -177,8 +182,11 @@ class Board(object):
             outFile.write(graphic.boardRep())
 
 if __name__ == "__main__":
-        fileName=input("Input Filename: ")
-        outFileName=input("Output Filename: ")
+    Tk().withdraw()
+
+    while True:
+        fileName=askopenfilename() 
+        outFileName=asksaveasfilename()
         
         name=fileName.replace("/","\\")
         name=name.split("\\")[-1]
@@ -190,5 +198,4 @@ if __name__ == "__main__":
         brd=Board(node)
         
         brd.write(open(outFileName,"a"))
-        print("DONE!")
-            
+        if not askyesno("Eagle V6 to Kicad", "Convert another file?"):break

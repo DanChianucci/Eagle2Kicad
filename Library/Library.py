@@ -4,12 +4,17 @@ Created on Apr 3, 2012
 @author: Dan
 '''
 import sys
-sys.path.append("..\Common")
+sys.path.append("../Common")
 
 from Converter import Converter, SchemConverter
 from Module import Module
 from Symbol import Symbol
 from xml.etree.ElementTree import ElementTree
+
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename     
+from tkinter.filedialog import asksaveasfilename
+from tkinter.messagebox import askyesno
 
 class Library(object):
     #<!ELEMENT library (description?, packages?, symbols?, devicesets?)>
@@ -76,20 +81,23 @@ class Library(object):
         docFile.write("EESchema-DOCLIB  Version 0.0  Date: 00/00/0000 00:00:00\n")
 
 if __name__=="__main__":
-    fileName=input("Input Filename: ")
-    modFileName=input("Module Output Filename: ")
-    symFileName=input("Symbol Output Filename: ")
-    
-    name=fileName.replace("/","\\")
-    name=name.split("\\")[-1]
-    name=name.split(".")[0]
-    
-    node = ElementTree(file=fileName)
-    node = node.getroot()
-    node = node.find("drawing").find("library")
-    lib=Library(node,name)    
-    modFile=open(modFileName,"a")
-    symFile=open(symFileName,"a")
-    lib.writeLibrary(modFile,symFile)
-    print("DONE!")         
+    Tk().withdraw()
+
+    while True:
+        fileName=askopenfilename(filetypes=[('Eagle V6 Library', '.lbr'), ('all files', '.*')], defaultextension='.lbr') 
+        modFileName=asksaveasfilename(title="Module Output Filename", filetypes=[('KiCad Module', '.mod'), ('all files', '.*')], defaultextension='.mod', initialdir='../')
+        symFileName=asksaveasfilename(title="Symbol Output Filename", filetypes=[('KiCad Symbol', '.lib'), ('all files', '.*')], defaultextension='.lib')
+        
+        name=fileName.replace("/","\\")
+        name=name.split("\\")[-1]
+        name=name.split(".")[0]
+        
+        node = ElementTree(file=fileName)
+        node = node.getroot()
+        node = node.find("drawing").find("library")
+        lib=Library(node,name)    
+        modFile=open(modFileName,"a")
+        symFile=open(symFileName,"a")
+        lib.writeLibrary(modFile,symFile)
+        if not askyesno("Eagle V6 to Kicad", "Convert another file?"):break
         
