@@ -4,7 +4,8 @@ Created on Apr 3, 2012
 @author: Dan
 '''
 import sys
-sys.path.append("..\Common")
+if "../Common" not in sys.path:
+    sys.path.append("..\Common")
 
 from Converter import Converter, SchemConverter
 from Module import Module
@@ -27,10 +28,6 @@ class Library(object):
         
 
         self.name=name
-        
-        node = ElementTree(file=fileName)
-        node = node.getroot()
-        node = node.find("drawing").find("library")
         
         if converter==None:
             converter=Converter()

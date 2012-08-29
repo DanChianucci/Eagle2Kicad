@@ -13,6 +13,4 @@ Questions.txt
 /ignore/*.*
 /Library/Libraries/*
 /Library/Libraries/*/*.*
-
-/start.py
 /Eagle.dtd

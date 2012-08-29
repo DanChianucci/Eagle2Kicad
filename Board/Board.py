@@ -4,7 +4,8 @@ Created on Apr 3, 2012
 @author: Dan
 '''
 import sys
-sys.path.append("../Common")
+if "../Common" not in sys.path:
+    sys.path.append("../Common")
 
 from Converter import Converter
 from Module import Module
@@ -14,7 +15,7 @@ from Shapes import Track, Via, Line, Circle, Polyline, Text, Zone
 from tkinter import Tk
 from tkinter.filedialog   import askopenfilename     
 from tkinter.filedialog   import asksaveasfilename
-from tkinter.messagebox		import askyesno
+from tkinter.messagebox	import askyesno
 
 class Board(object):
     '''
@@ -198,4 +199,6 @@ if __name__ == "__main__":
         brd=Board(node)
         
         brd.write(open(outFileName,"a"))
-        if not askyesno("Eagle V6 to Kicad", "Convert another file?"):break
+        
+        if not askyesno("Eagle V6 to Kicad", "Convert another file?"):
+            break
