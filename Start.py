@@ -1,11 +1,14 @@
-import sys
-sys.path.append("./Board")
-sys.path.append("./Library")
-sys.path.append("./Schematic")
+import sys,inspect,os
+scriptDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.append(scriptDir+"\\Board")
+sys.path.append(scriptDir+"\\Library")
+sys.path.append(scriptDir+"\\Schematic")
+sys.path.append(scriptDir+"\\Common")
 
-from Board import Board
-from Library import Library
-#from Schematic import Schematic
+
+import Board
+import Library
+#import Schematic
 
 from tkinter import Tk,Frame,Label,Button,RIDGE,BOTH,X
 from tkinter.filedialog   import askopenfilename     
@@ -83,7 +86,7 @@ def convertBoard():
 	outFileName=asksaveasfilename(title="Board Output", filetypes=[('KiCad Board', '.brd'), ('all files', '.*')], defaultextension='.brd')
 		
 	node = getRootNode(fileName)	
-	brd=Board(node)	
+	brd=Board.Board(node)	
 	brd.write(open(outFileName,"a"))
 	showinfo("Board Complete","The Board Has Finished Converting \n Check Console for Errors")
 	
@@ -99,7 +102,7 @@ def convertLib():
 	node = getRootNode(fileName)
 	node=node.find("drawing").find("library")
 	
-	lib=Library(node,name)			
+	lib=Library.Library(node,name)			
 	modFile=open(modFileName,"a")
 	symFile=open(symFileName,"a")
 			
