@@ -13,10 +13,6 @@ from Symbol import Symbol
 from xml.etree.ElementTree import ElementTree
 
 class Library(object):
-    #<!ELEMENT library (description?, packages?, symbols?, devicesets?)>
-    #<!ATTLIST library
-    #        name          %String;       #REQUIRED -- only in libraries used inside boards or schematics --
-    #     >
     __slots__=("name","modules","symbols","converter")
     
     def __init__(self,node,name,converter=None):
@@ -73,21 +69,21 @@ class Library(object):
         docFile.write("EESchema-DOCLIB  Version 0.0  Date: 00/00/0000 00:00:00\n")
 
 if __name__=="__main__":
-	fileName=input("Input Library: ") 
-	modFileName=input("Output Modules: ") 
-	symFileName=input("Output Symbols: ") 
-
-	name=fileName.replace("/","\\")
-	name=name.split("\\")[-1]
-	name=name.split(".")[0]
-
-	node = ElementTree(file=fileName)
-	node = node.getroot()
-	node = node.find("drawing").find("library")
-
-	lib=Library(node,name)    
-	modFile=open(modFileName,"a")
-	symFile=open(symFileName,"a")
-	lib.writeLibrary(modFile,symFile)
+    fileName=input("Input Library: ") 
+    modFileName=input("Output Modules: ") 
+    symFileName=input("Output Symbols: ") 
+    
+    name=fileName.replace("/","\\")
+    name=name.split("\\")[-1]
+    name=name.split(".")[0]
+    
+    node = ElementTree(file=fileName)
+    node = node.getroot()
+    node = node.find("drawing").find("library")
+    
+    lib=Library(node,name)    
+    modFile=open(modFileName,"a")
+    symFile=open(symFileName,"a")
+    lib.writeLibrary(modFile,symFile)
 
         
