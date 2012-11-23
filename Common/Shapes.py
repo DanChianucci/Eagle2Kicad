@@ -4,15 +4,15 @@ Created on Apr 3, 2012
 @author: Dan
 '''
 import math
-import LayerIds
+from LayerIds import getLayerId, makeViaMask
 
 class Line(object):
     __slots__=('x1','y1','x2','y2',"cX","cY",'width','layer','curve')
     
-    def __init__(self,node,converter,noTranspose=False):
-        self.getWireInfo(node,converter,noTranspose)
-           
-    def getWireInfo(self,wire,converter,noTranspose=False):
+    def __init__(self,node,converter,noTranspose=False, offset=None):
+        self.getWireInfo(node,converter,noTranspose, offset)
+        
+    def getWireInfo(self,wire,converter,noTranspose, offset):
         """
         Converts a wire dictionary node from Eagle to a usable form for kicad
         It then returns the dictionary of the wires info
@@ -28,8 +28,17 @@ class Line(object):
         """
         x1,y1=converter.convertCoordinate(wire.get('x1'),wire.get('y1'),noTranspose)
         x2,y2=converter.convertCoordinate(wire.get('x2'),wire.get('y2'),noTranspose)
+        
+        if offset != None:
+            dX, dY =   converter.convertCoordinate(offset[0], offset[1], noTranspose)
+            x1 += dX
+            y1 += dY
+            x2 += dX
+            y2 += dY
+        
+        
         width=converter.convertUnit(wire.get('width'))
-        layer=LayerIds.getLayerId(wire.get('layer'))
+        layer=getLayerId(wire.get('layer'))
         curve=wire.get('curve')
         if curve==None:
             cX=(x1+x2)//2
@@ -104,7 +113,7 @@ class Line(object):
         cX,cY=converter.convertCoordinate(cX,cY,noTranspose,noInvert)
         curve=str(-int(curve*10))
         return cX,cY,curve
-     
+    
     def moduleRep(self):
         myString=""        
         if self.curve=="None":
@@ -165,7 +174,7 @@ class Via(object):
         self.y=str(y)
         self.drill=str(drill)
         self.diameter=str(diameter)
-        self.extent=LayerIds.makeViaMask(extent)
+        self.extent=makeViaMask(extent)
         self.shape=str(shape)
         self.netCode=str(netCode)
         
@@ -189,7 +198,7 @@ class Zone(object):
     def __init__(self,node,converter,node_name,netCode='0',noTranspose=False):
         self.vertexs = node.findall('vertex')
         self.width = converter.convertUnit(node.get('width'))
-        self.layer = LayerIds.getLayerId(node.get('layer'))
+        self.layer = getLayerId(node.get('layer'))
         
         isolate=node.get('isolate')
         if isolate is not None:
@@ -225,11 +234,11 @@ class Zone(object):
         myString+=self.cornerstr
         myString+="$endCZONE_OUTLINE\n"
         return myString
-       
+    
 class Polyline(object):
     __slots__=("lines")
     
-    def __init__(self, node, converter, noTranspose=False):
+    def __init__(self, node, converter, noTranspose=False, offset=None):
         #DON't convert any units they will get converted in the Line()
         vertexs=node.findall('vertex')
         width=node.get('width')
@@ -244,7 +253,7 @@ class Polyline(object):
             y2=vertexs[nexti].get('y')
             curve=vertexs[_i].get('curve')
             wire={'x1':x1,'y1':y1,'x2':x2,'y2':y2,'curve':curve,'width':width,'layer':layer}
-            line=Line(wire,converter,noTranspose)
+            line=Line(wire, converter, noTranspose, offset)
             self.lines.append(line)
             
     def moduleRep(self):
@@ -267,11 +276,18 @@ class Polyline(object):
         
 class Circle(object):
     __slots__=('cX','cY','pX','pY','layer','width',"radius")
-    def __init__(self,node,converter,noTranspose=False):
+    def __init__(self,node,converter,noTranspose=False, offset=None):
         radius=converter.convertUnit(node.get('radius'))
         cX,cY=converter.convertCoordinate(node.get('x'),node.get('y'),noTranspose)
+        
+        if offset != None:
+            dX, dY = converter.convertCoordinate(offset[0], offset[1], noTranspose)
+            cX += dX
+            cY += dY
+
+        
         width=converter.convertUnit(node.get('width'))
-        layer=LayerIds.getLayerId((node.get('layer')))
+        layer=getLayerId((node.get('layer')))
         pX=int(cX)+int(radius)
         pY=cY
         self.cX=str(cX)
@@ -302,12 +318,17 @@ class Circle(object):
 class Text(object):
     __slots__=("val","x","y","width","size","rot","mirror","hJust","vJust","layer","style","forceCenter")
     
-    def __init__(self,node,converter,noTranspose=False):    
+    def __init__(self,node,converter,noTranspose=False, offset=None):    
         
         self.val=node.text
         self.style='Normal'
-        layer=LayerIds.getLayerId(node.get('layer'))
-        x,y=converter.convertCoordinate(node.get('x'),node.get('y'),noTranspose)
+        layer=getLayerId(node.get('layer'))
+        x,y = converter.convertCoordinate(node.get('x'), node.get('y'), noTranspose)
+        if offset != None:
+            dX, dY =   converter.convertCoordinate(offset[0], offset[1], noTranspose)
+            x += dX
+            y += dY
+            
         self.x=str(x)
         self.y=str(y)
         self.layer=str(layer)
@@ -339,7 +360,7 @@ class Text(object):
         if rot%900 != 0:
             print("Warning Text must be rotated increments of 90 degrees")
             print("\tText: "+self.val+"\tRotation: "+str(rot))
-         
+
         
         just=node.get("align")
         if just==None:
@@ -418,7 +439,7 @@ class Text(object):
         hJust=self.hJust
         vJust=self.vJust
         size=int(self.size)
-           
+        
         if rot==0 or rot==1800:
             if hJust=="left":
                 dX=len(self.val)//2*size
