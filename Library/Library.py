@@ -7,13 +7,14 @@ import sys
 if "../Common" not in sys.path:
     sys.path.append("..\Common")
 
-from Converter import Converter, SchemConverter
-from Module import Module
-from Symbol import Symbol
+from Converter import *
+from Module import *
+from Symbol import DevicePart
+from Device import Deviceset
 from xml.etree.ElementTree import ElementTree
 
 class Library(object):
-    __slots__=("name","modules","symbols","converter")
+    #__slots__=("name","modules","symbols","converter")
     
     def __init__(self,node,name,converter=None):
         
@@ -25,17 +26,40 @@ class Library(object):
         symConverter=SchemConverter()
 
         self.modules=[]
-        self.symbols=[]
+        self.deviceparts= []
+        devicesetsLst =[]
+        symbolsHash = {}
         
         packages=node.find("packages").findall("package")
-        symbols=node.find("symbols").findall("symbol")
-        
         if packages !=None:
             for package in packages:
                 self.modules.append(Module(package,converter))
-        if symbols!=None:
+                
+        devicesets=node.find("devicesets").findall("deviceset")
+        if devicesets!=None:
+            for deviceset in devicesets:
+                ds = Deviceset(deviceset, symConverter)
+                devicesetsLst.append(ds)
+
+        symbols=node.find("symbols").findall("symbol")
+        if symbols!=None and  len(devicesetsLst) != 0: #strange if not?
             for symbol in symbols:
-                self.symbols.append(Symbol(symbol,symConverter))
+                sn = symbol.get("name")
+                if sn in symbolsHash:
+                    print("The symbol with the same name %s already exists!" % sn)
+                else:
+                    symbolsHash[sn] = symbol
+                    
+            for deviceset  in devicesetsLst: #strange if not?
+                #just iterater over all posible device packages
+                for device in deviceset.getDevices():
+                    #we have to create a number of symbols to match diffrent pin configurations
+                    #the real name of device is <deviceset> name plus name of <device>
+                    #symlink is just a scheme representation of the set of devices or devicessts 
+                    device.setFullName(deviceset.name)
+                    dp = DevicePart(device, symbolsHash, deviceset.getGates(), symConverter)
+                    self.deviceparts.append(dp)
+
         
     def writeLibrary(self, modFile=None , symFile=None , docFile=None ):
         if modFile != None:
@@ -61,29 +85,11 @@ class Library(object):
         
     def writeSymFile(self,symFile):
         symFile.write("EESchema-LIBRARY Version 0.0  00/00/0000-00:00:00\n")
-        for symbol in self.symbols:
-            symbol.write(symFile)
+        for devicepart in self.deviceparts:
+            devicepart.write(symFile)
         symFile.write("# End Library")
 
     def writeDocFile(self,docFile):
         docFile.write("EESchema-DOCLIB  Version 0.0  Date: 00/00/0000 00:00:00\n")
-
-if __name__=="__main__":
-    fileName=input("Input Library: ") 
-    modFileName=input("Output Modules: ") 
-    symFileName=input("Output Symbols: ") 
-    
-    name=fileName.replace("/","\\")
-    name=name.split("\\")[-1]
-    name=name.split(".")[0]
-    
-    node = ElementTree(file=fileName)
-    node = node.getroot()
-    node = node.find("drawing").find("library")
-    
-    lib=Library(node,name)    
-    modFile=open(modFileName,"a")
-    symFile=open(symFileName,"a")
-    lib.writeLibrary(modFile,symFile)
 
         
