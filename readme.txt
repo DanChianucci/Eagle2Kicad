@@ -4,26 +4,18 @@ All scripts are written in the python 3.2 grammer.
 Please try it out and report any issues to the issue tracker.
 
 Features so far:
-	Convert Boards
-		-Rectangle Graphics are not converted
-	
-	Convert Libraries
-		-Very Limited Schematic Symbol support
-	
-To Convert Board:
-	-copy the Eagle .brd file to the Board directory 
-	-run Board.py (in the BOARD directory) 
-	-it will ask for the name of an input file (the .brd you just copied)
-	-it will ask for the name of an output file (anything.brd)
-	-And thats it, the kicad .brd file is now in the Board directory
-
-To Convert Library
-	(note COnverting Libraries is still experimental)
-	-copy the Eagle .lbr file to the Library directory 
-	-run Library.py (in the Library directory) 
-	-it will ask for the name of an input file (the .lbr file you just copied)
-	-it will ask for the name of an output file (anything.mod)
-	-And thats it, the kicad footprint library should be in the Library folder
+        Convert Boards
+            -Rectangle Graphics are not converted
+        Convert Libraries
+            -Schematic Symbol Conversions thanks to ???
+        
+To Convert a file run Start.py located in the root of the download zip file
+A gui will pop up asking what to do.
+    -# Choose an option
+    -# Select the file to convert.
+    -# Select the Output file(s)
+    -# A message will appear stating whether or not the conversion was sucessful
+    -# check the log.txt to see if there were any issues
 
 !!!!!!!!!!!!NOTICE!!!!!!!!!!!!!!!!!
 All boards converted using this script should be checked over to make sure everything looks good.
