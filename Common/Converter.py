@@ -129,7 +129,7 @@ class Converter(object):
 class SchemConverter(Converter):
     def __init__(self):
         Converter.__init__(self,None)
-        self.factor=self.factor=1/(25.4)*1000
+        self.factor=1/(25.4)*1000
     
     def convertCoordinate(self,x,y,noTranspose="NotUsed",noInvert="notUsed"):
         return Converter.convertCoordinate(self,x,y,True,True)
