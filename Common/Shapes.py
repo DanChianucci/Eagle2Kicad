@@ -3,11 +3,11 @@ Created on Apr 3, 2012
 
 @author: Dan
 '''
-import math
+from math import sin,sqrt,atan2,cos,radians,fabs,degrees
 from LayerIds import getLayerId, makeViaMask
 
 class Line(object):
-    __slots__=('x1','y1','x2','y2',"cX","cY",'width','layer','curve')
+    __slots__=('x1','y1','x2','y2',"cX","cY",'width','layer','curve','radius')
     
     def __init__(self,node,converter,noTranspose=False, offset=None):
         self.getWireInfo(node,converter,noTranspose, offset)
@@ -26,26 +26,32 @@ class Line(object):
                     Keys = x1,x2,y1,y2,layer,curve,width
             
         """
+            
         x1,y1=converter.convertCoordinate(wire.get('x1'),wire.get('y1'),noTranspose)
         x2,y2=converter.convertCoordinate(wire.get('x2'),wire.get('y2'),noTranspose)
         
-        if offset != None:
-            dX, dY =   converter.convertCoordinate(offset[0], offset[1], noTranspose)
-            x1 += dX
-            y1 += dY
-            x2 += dX
-            y2 += dY
         
         
         width=converter.convertUnit(wire.get('width'))
         layer=getLayerId(wire.get('layer'))
+        
         curve=wire.get('curve')
         if curve==None:
             cX=(x1+x2)//2
             cY=(y1+y2)//2
+            radius = 0
         else:
-            cX,cY,curve=self.getWireArcInfo(wire,converter,noTranspose)
-                
+            cX,cY,curve,radius=self.getWireArcInfo(wire,converter,noTranspose)
+        
+        if offset != None:
+            dX, dY = converter.convertCoordinate(offset[0], offset[1], noTranspose)
+            x1 += dX
+            y1 += dY
+            x2 += dX
+            y2 += dY
+            cX += dX
+            cY += dY
+            
         self.x1=str(x1)
         self.y1=str(y1)
         self.x2=str(x2)
@@ -55,19 +61,18 @@ class Line(object):
         self.width=str(width)
         self.layer=str(layer)
         self.curve=str(curve)
+        self.radius = str(radius)
 
-    def getWireArcInfo(self,arc,converter,noTranspose=False,noInvert=False):
+    def getWireArcInfo(self,arc,converter, noTranspose=False,noInvert=False):
         """
         Converts between Eagle's arc definitions, and kicads arc definitions
         Eagle holds the two endpoints and the degrees of the sweep ccw betweeen them
         
         Kicad holds the center point, and an enpoint, and a degree sweep CW from 
         the endpoint
-        
-        This was the hardest part to get working
-        
+
         Params:
-            arc: the node of the arc from myDict
+            arc:             the node of the arc from myDict
             noTranspose:    If true the coordinates will not be transposed
             noInvert:       If True the coordinates will not be inverted
         
@@ -77,43 +82,57 @@ class Line(object):
             x1: the endpt x coord
             y1: the endpt y coord
             curve: the angle to sweep in 1/10 degrees
+            radius: the radius of the arc
         """
         
         curve=float(arc.get('curve'))
-        x1,y1=arc.get('x1'),arc.get('y1')
-        x2,y2=arc.get('x2'),arc.get('y2')
+        x1,y1= float(arc.get('x1')) , float(arc.get('y1'))
+        x2,y2= float(arc.get('x2')) , float(arc.get('y2'))
         
-        #radius of arc
-        x1=float(x1)
-        x2=float(x2)
-        y1=float(y1)
-        y2=float(y2)
-        l=math.sqrt((x1-x2)**2+(y1-y2)**2)
-        r=l/(2*math.sin(math.radians(curve/2.0)))
-            
-        ##go to midpoint of chord move perpendicular by arc height
-        h=math.sqrt(r**2-(l/2)**2)    
+        #length of the chord
+        l=sqrt((x1-x2)**2+(y1-y2)**2)
+        
+        #radius = l / ( 2*sin(curve/2) )
+        r = l/( 2*sin(radians(curve/2.0)))
+        
+        #find midpoint of chord and then move perpendicularly to the center
+           
+        #go to midpoint of chord
+        mX=(x2+x1)/2
+        mY=(y2+y1)/2
+        
+        #distance between center and chord
+        h=sqrt(r**2-(l/2)**2)  
+          
         #slope of chord
         dY=(y2-y1)
         dX=(x2-x1)
-        mX=(x2+x1)/2
-        mY=(y2+y1)/2
-        chordangle=math.atan2(dY,dX)
+        
+        chordangle=atan2(dY,dX)
+        
+        #normalise the chord angle
         if chordangle<0:
-            chordangle+=math.radians(360)    
-        angleSign=curve/math.fabs(curve)    
-        angle=chordangle-math.radians(90)*angleSign   
-        xChange=h*math.cos(angle)
-        yChange=h*math.sin(angle)
-        if math.fabs(curve)<180:
+            chordangle+=radians(360)
+        
+        #the angle perpendicular to the chord  
+        angleSign=curve/fabs(curve)    
+        angle=chordangle-radians(90)*angleSign 
+          
+        xChange=h*cos(angle)
+        yChange=h*sin(angle)
+        
+        if fabs(curve)<180:
             xChange=-xChange
-            yChange=-yChange    
+            yChange=-yChange
+               
         cX=mX+xChange
         cY=mY+yChange
-        cX,cY=converter.convertCoordinate(cX,cY,noTranspose,noInvert)
-        curve=str(-int(curve*10))
-        return cX,cY,curve
-    
+        cX,cY = converter.convertCoordinate(cX, cY, noTranspose, noInvert)
+        r     = converter.convertUnit(r)
+        curve=-int(curve*10)
+        
+        return cX,cY,curve,r
+
     def moduleRep(self):
         myString=""        
         if self.curve=="None":
@@ -129,11 +148,10 @@ class Line(object):
             myString+="Po 0 "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" "+self.width+"\n"
             myString+="De "+self.layer+" 0 900 0 0\n"
             myString+="$EndDRAWSEGMENT\n"
-        else:
-            curve=self.curve        
+        else:      
             myString="$DRAWSEGMENT\n"
             myString+="Po 2 "+self.cX+" "+self.cY+" "+self.x1+" "+self.y1+" "+self.width+"\n"
-            myString+="De "+self.layer+" 0 "+curve+" 0 0\n"
+            myString+="De "+self.layer+" 0 "+self.curve+" 0 0\n"
             myString+="$EndDRAWSEGMENT\n"
         return myString
     
@@ -141,8 +159,20 @@ class Line(object):
         if self.curve == "None":
             myString="P 2 0 0 "+self.width+" "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" N\n"
             return myString
-        else:#TODO Curve Support in symbols lines
-            myString="P 2 0 0 "+self.width+" "+self.cX+" "+self.cY+" "+self.x1+" "+self.y1+" N\n"
+        else:
+            x1,y1 = int(self.x1) , int(self.y1)           
+            x2,y2 = int(self.x2) , int(self.y2)
+            cX,cY = int(self.cX) , int(self.cY)
+            
+            dx,dy = x1-cX , y1-cY
+            sAng  = str(int(degrees(atan2(dy, dx))*10))            
+            
+            dx,dy = x2-cX, y2-cY
+            eAng  = str(int(degrees(atan2(dy, dx))*10))
+             
+            myString="A "+self.cX+" "+self.cY+" "+self.radius+" "+sAng+" "+\
+                eAng+" 0 0 "+self.width+" N "+self.x1+" "+self.y1+" "+self.x2+\
+                " "+self.y2+"\n"
             return myString       
     
 class Track(Line):
