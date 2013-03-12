@@ -59,8 +59,11 @@ def convertBoard():
 	try:
 		
 		node = getRootNode(fileName)	
-		brd=Board(node)	
-		brd.write(open(outFileName,"a"))
+		brd=Board(node)
+		open(outFileName,'w').close()
+		outFile=open(outFileName,"a")
+		brd.write(outFile)
+		outFile.close()
 	
 	except Exception as e:
 		showerror("Error",str(e)+"\nSee Log.txt for more info")		
@@ -92,10 +95,17 @@ def convertLib():
 	try:
 		node = getRootNode(fileName)
 		node=node.find("drawing").find("library")	
-		lib=Library(node,name)			
+		lib=Library(node,name)
+		
+		open(modFileName,'w').close()
+		open(symFileName,'w').close()		
 		modFile=open(modFileName,"a")
-		symFile=open(symFileName,"a")			
+		symFile=open(symFileName,"a")
+					
 		lib.writeLibrary(modFile,symFile)
+		
+		modFile.close()
+		symFile.close()
 	except Exception as e:
 		showerror("Error",str(e)+"\nSee Log.txt for more info")		
 		logFile.write("Conversion Failed\n\n")
