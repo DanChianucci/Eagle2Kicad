@@ -3,7 +3,7 @@ Created on Apr 3, 2012
 
 @author: Dan
 '''
-from math import sin,sqrt,atan2,cos,radians,fabs,degrees
+from math import sin,sqrt,atan2,copysign,radians,fabs,degrees
 from LayerIds import getLayerId, makeViaMask
 
 class Line(object):
@@ -68,81 +68,60 @@ class Line(object):
 
     def getWireArcInfo(self,arc,converter, noTranspose=False,noInvert=False):
         """
-        Converts between Eagle's arc definitions, and kicads arc definitions
-        Eagle holds the two endpoints and the degrees of the sweep ccw betweeen them
+        Converts between Eagle's arc definitions, and kicads arc definitions.
         
-        Kicad holds the center point, and an enpoint, and a degree sweep CW from 
-        the endpoint
+        \note Eagle holds the two endpoints and the degrees of the sweep ccw 
+              betweeen them.                
+        \note PCBNew holds the center point, and an enpoint, and a degree 
+              sweep CW from the endpoint
+        \note EESchema Holds Endpoints, Center Point, Radius, Start Angle,
+              EndAngle
 
-        Params:
-            arc:             the node of the arc from myDict
-            noTranspose:    If true the coordinates will not be transposed
-            noInvert:       If True the coordinates will not be inverted
+        \param arc          The node of the arc from myDict
+        \param converter    The converter to use for unit conversions
+        \param noTranspose  If true the coordinates will not be transposed
+        \param noInvert     If True the coordinates will not be inverted
         
-        Returns:
-            cX: the center x coord
-            cY: the center y coord
-            x1: the endpt x coord
-            y1: the endpt y coord
-            curve: the angle to sweep in 1/10 degrees
-            radius: the radius of the arc
+        
+        \return cX     the center x coord
+        \return cY     the center y coord
+        \return x1     the endpt x coord
+        \return y1     the endpt y coord
+        \return curve  the angle to sweep in 1/10 degrees
+        \return radius the radius of the arc
+        \return sAngle the start Angle   
+        \return eAngle the end Angle
+        
+        \bug sAngle, and eAngle aren't always correct
         """
         
         curve=float(arc.get('curve'))
         x1,y1= float(arc.get('x1')) , float(arc.get('y1'))
         x2,y2= float(arc.get('x2')) , float(arc.get('y2'))
-            
+              
         #length of the chord
         l=sqrt((x1-x2)**2+(y1-y2)**2)
-        
         #radius = l / ( 2*sin(curve/2) )
-        r = fabs(l/( 2*sin(radians(curve/2.0))))
-        
-        #find midpoint of chord and then move perpendicularly to the center
-           
-        #go to midpoint of chord
-        mX=(x2+x1)/2
-        mY=(y2+y1)/2
-        
+        r = l/(2*sin(radians(fabs(curve)/2)))
+        #midpoint of chord
+        mX, mY = (x2+x1)/2 , (y2+y1)/2
         #distance between center and chord
-        h=sqrt(r**2-(l/2)**2)  
-          
-        #slope of chord
-        dY=(y2-y1)
-        dX=(x2-x1)
+        h=sqrt(r**2-(l/2)**2)
         
-        chordangle=atan2(dY,dX)
+        #calculate center point by moving perpendicular from chord by height
+        #make sure we move toward center not away
+        sign = copysign(1,curve)*(-1 if fabs(curve)>180 else 1)
+        cX = mX + h*(y1-y2)/l*sign #mx +- h*cos(theta)        
+        cY = mY + h*(x2-x1)/l*sign #my +- h*sin(theta)
         
-        #normalise the chord angle
-        if chordangle<0:
-            chordangle+=radians(360)
-        
-        #the angle perpendicular to the chord  
-        angleSign=curve/fabs(curve)    
-        angle=chordangle-radians(90)*angleSign 
-          
-        xChange=h*cos(angle)
-        yChange=h*sin(angle)
-        
-        if fabs(curve)<180:
-            xChange=-xChange
-            yChange=-yChange
-               
-        cX=mX+xChange
-        cY=mY+yChange
-
-        if curve<0:
-            sAngle=degrees(atan2(y2-cY,x2-cX))
-        else:
-            sAngle=degrees(atan2(y1-cY,x1-cX))
-        eAngle=sAngle+curve
+        sAngle = round(degrees(atan2(y1-cY,x1-cX)))
+        eAngle = round(sAngle+curve+copysign(180,curve) if fabs(curve)>180 else 0)
         
         cX,cY  = converter.convertCoordinate(cX,cY,noTranspose,noInvert)
         curve  = int(curve*10)
         r      = converter.convertUnit(r)
-        sAngle = int(sAngle*10)%3600
-        eAngle = int(eAngle*10)
-        
+        sAngle*=10
+        eAngle*=10
         return cX,cY,curve,r,sAngle,eAngle
 
     def moduleRep(self):
