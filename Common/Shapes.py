@@ -7,7 +7,7 @@ from math import sin,sqrt,atan2,cos,radians,fabs,degrees
 from LayerIds import getLayerId, makeViaMask
 
 class Line(object):
-    __slots__=('x1','y1','x2','y2',"cX","cY",'width','layer','curve','radius')
+    __slots__=('x1','y1','x2','y2',"cX","cY",'width','layer','curve','radius','sAngle','eAngle')
     
     def __init__(self,node,converter,noTranspose=False, offset=None):
         self.getWireInfo(node,converter,noTranspose, offset)
@@ -29,19 +29,20 @@ class Line(object):
             
         x1,y1=converter.convertCoordinate(wire.get('x1'),wire.get('y1'),noTranspose)
         x2,y2=converter.convertCoordinate(wire.get('x2'),wire.get('y2'),noTranspose)
-        
-        
+        curve=wire.get('curve')
         
         width=converter.convertUnit(wire.get('width'))
         layer=getLayerId(wire.get('layer'))
         
-        curve=wire.get('curve')
+        
         if curve==None:
             cX=(x1+x2)//2
             cY=(y1+y2)//2
             radius = 0
+            sAngle = 0
+            eAngle = 0
         else:
-            cX,cY,curve,radius=self.getWireArcInfo(wire,converter,noTranspose)
+            cX,cY,curve,radius,sAngle,eAngle=self.getWireArcInfo(wire,converter,noTranspose)
         
         if offset != None:
             dX, dY = converter.convertCoordinate(offset[0], offset[1], noTranspose)
@@ -52,16 +53,18 @@ class Line(object):
             cX += dX
             cY += dY
             
-        self.x1=str(x1)
-        self.y1=str(y1)
-        self.x2=str(x2)
-        self.y2=str(y2)
-        self.cX=str(cX)
-        self.cY=str(cY)
-        self.width=str(width)
-        self.layer=str(layer)
-        self.curve=str(curve)
-        self.radius = str(radius)
+        self.x1=        str(x1)
+        self.y1=        str(y1)
+        self.x2=        str(x2)
+        self.y2=        str(y2)
+        self.cX=        str(cX)
+        self.cY=        str(cY)
+        self.width=     str(width)
+        self.layer=     str(layer)
+        self.curve=     str(curve)
+        self.radius=    str(radius)
+        self.sAngle=    str(sAngle)
+        self.eAngle=    str(eAngle)
 
     def getWireArcInfo(self,arc,converter, noTranspose=False,noInvert=False):
         """
@@ -88,12 +91,12 @@ class Line(object):
         curve=float(arc.get('curve'))
         x1,y1= float(arc.get('x1')) , float(arc.get('y1'))
         x2,y2= float(arc.get('x2')) , float(arc.get('y2'))
-        
+            
         #length of the chord
         l=sqrt((x1-x2)**2+(y1-y2)**2)
         
         #radius = l / ( 2*sin(curve/2) )
-        r = l/( 2*sin(radians(curve/2.0)))
+        r = fabs(l/( 2*sin(radians(curve/2.0))))
         
         #find midpoint of chord and then move perpendicularly to the center
            
@@ -127,11 +130,20 @@ class Line(object):
                
         cX=mX+xChange
         cY=mY+yChange
-        cX,cY = converter.convertCoordinate(cX, cY, noTranspose, noInvert)
-        r     = converter.convertUnit(r)
-        curve=-int(curve*10)
+
+        if curve<0:
+            sAngle=degrees(atan2(y2-cY,x2-cX))
+        else:
+            sAngle=degrees(atan2(y1-cY,x1-cX))
+        eAngle=sAngle+curve
         
-        return cX,cY,curve,r
+        cX,cY  = converter.convertCoordinate(cX,cY,noTranspose,noInvert)
+        curve  = int(curve*10)
+        r      = converter.convertUnit(r)
+        sAngle = int(sAngle*10)%3600
+        eAngle = int(eAngle*10)
+        
+        return cX,cY,curve,r,sAngle,eAngle
 
     def moduleRep(self):
         myString=""        
@@ -160,18 +172,8 @@ class Line(object):
             myString="P 2 0 0 "+self.width+" "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" N\n"
             return myString
         else:
-            x1,y1 = int(self.x1) , int(self.y1)           
-            x2,y2 = int(self.x2) , int(self.y2)
-            cX,cY = int(self.cX) , int(self.cY)
-            
-            dx,dy = x1-cX , y1-cY
-            sAng  = str(int(degrees(atan2(dy, dx))*10))            
-            
-            dx,dy = x2-cX, y2-cY
-            eAng  = str(int(degrees(atan2(dy, dx))*10))
-             
-            myString="A "+self.cX+" "+self.cY+" "+self.radius+" "+sAng+" "+\
-                eAng+" 0 0 "+self.width+" N "+self.x1+" "+self.y1+" "+self.x2+\
+            myString="A "+self.cX+" "+self.cY+" "+self.radius+" "+self.sAngle+" "+\
+                self.eAngle+" 0 0 "+self.width+" N "+self.x1+" "+self.y1+" "+self.x2+\
                 " "+self.y2+"\n"
             return myString       
     
