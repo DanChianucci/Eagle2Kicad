@@ -117,8 +117,7 @@ class Board(object):
                 self.tracks.append(Via(via,converter,netCode))
             for _zone in zones:
                 self.polygon.append(Zone(_zone,converter,signal.get("name"),netCode))
-                
-    
+                 
     def getGraphics(self,plain,converter):
         wires=plain.findall("wire")
         polygons=plain.findall("polygon")
@@ -133,10 +132,8 @@ class Board(object):
             self.plain.append(Text(text,converter))
         for circle in circles:
             self.plain.append(Circle(circle,converter))
-        
-       
-    def write(self,outFile):
-        
+          
+    def write(self,outFile):  
         outFile.write('PCBNEW-BOARD Version 0 date 0/0/0000 00:00:00\n')
         self.writeEQUIPOT(outFile)
         self.writeMODULES(outFile)
@@ -179,16 +176,16 @@ class Board(object):
             outFile.write(graphic.boardRep())
 
 if __name__ == "__main__":
-	fileName=input("Input Filename: ") 
-	outFileName=input("Output Filename: ")
-
-	name=fileName.replace("/","\\")
-	name=name.split("\\")[-1]
-	name=name.split(".")[0]
-
-	node = ElementTree(file=fileName)
-	node = node.getroot()
-
-	brd=Board(node)
-
-	brd.write(open(outFileName,"a"))
+    fileName=input("Input Filename: ") 
+    outFileName=input("Output Filename: ")
+    
+    name=fileName.replace("/","\\")
+    name=name.split("\\")[-1]
+    name=name.split(".")[0]
+    
+    node = ElementTree(file=fileName)
+    node = node.getroot()
+    
+    brd=Board(node)
+    
+    brd.write(open(outFileName,"a"))
