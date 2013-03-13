@@ -8,13 +8,12 @@ if "../Common" not in sys.path:
     sys.path.append("..\Common")
 
 from Converter import *
-from Module import *
+from Module import * #@UnusedWildImport
 from Symbol import DevicePart
 from Device import Deviceset
-from xml.etree.ElementTree import ElementTree
 
 class Library(object):
-    #__slots__=("name","modules","symbols","converter")
+    __slots__=("name","modules","symbols","converter","deviceparts")
     
     def __init__(self,node,name,converter=None):
         
@@ -66,7 +65,7 @@ class Library(object):
             self.writeModFile(modFile)
         if symFile != None:
             self.writeSymFile(symFile)
-        if docFile != None:
+        if docFile != None: #not used at the moment
             self.writeDocFile(docFile)
     
     def writeModFile(self,modFile):
