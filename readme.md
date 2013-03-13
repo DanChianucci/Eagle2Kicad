@@ -27,6 +27,23 @@ A gui will pop up asking what to do.
     -# Select the Output file(s)
     -# A message will appear stating whether or not the conversion was sucessful
     -# check the log.txt to see if there were any issues
+    
+Alternatively you may use the command line options
+Note that includeing multiple flags of the same type will convert multiple files.
+ie) you can now batch convert files
+
+usage: start.py [-h] [-l inFile symFile modFile] [-b inFile brdFile]
+                [-s inFile schFile]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -l inFile symFile modFile, -L inFile symFile modFile, --Library inFile symFile modFile
+                        Convert an Eagle Library
+  -b inFile brdFile, -B inFile brdFile, --Board inFile brdFile
+                        Convert an Eagle Board
+  -s inFile schFile, -S inFile schFile, --Schematic inFile schFile
+                        Convert an Eagle Schematic
+
 
 !!!!!!!!!!!!NOTICE!!!!!!!!!!!!!!!!!
 All boards converted using this script should be checked over to make sure everything looks good.
