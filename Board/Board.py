@@ -5,7 +5,7 @@ Created on Apr 3, 2012
 '''
 import sys
 if "../Common" not in sys.path:
-    sys.path.append("../Common")
+    sys.path.append(r'../Common')
 
 from Converter import Converter
 from Module import Module
