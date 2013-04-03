@@ -6,7 +6,7 @@ Created on Apr 5, 2012
 import sys
 
 if "../Common" not in sys.path:
-    sys.path.append("../Common")
+    sys.path.append(r'../Common')
     
 
 class Schematic(object):
