@@ -77,7 +77,9 @@ class Symbol(object):
             self.pins.append(Pin(pin,converter,True, offset))
         for circle in node.findall("circle"):
             self.circles.append(Circle(circle,converter,True, offset))
-
+        for rectangle in node.findall("rectangle"):
+            self.rectangles.append(Rectangle(rectangle,converter,True))
+        
         if device:
             for pin in self.pins: #number all pins
                 pin.pad = device.getPadByPinName(pin.name)
@@ -112,6 +114,8 @@ class Symbol(object):
             symFile.write(pin.symRep())
         for circle in self.circles:
             symFile.write(circle.symRep())
+        for rectangle in self.rectangles:
+            symFile.write(rectangle.symRep())
 
 class Pin(object):
 #          name          %String;       #REQUIRED

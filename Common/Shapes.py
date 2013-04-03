@@ -326,6 +326,46 @@ class Circle(object):
         myString="C "+self.cX+" "+self.cY+" "+self.radius+" 0 0 "+self.width+" N\n"
         return myString
     
+class Rectangle(object):
+    __slots__=('x1','y1','x2','y2','layer','lines')
+    def __init__(self,node,converter,noTranspose=False):
+        x1,y1=converter.convertCoordinate(node.get('x1'),node.get('y1'),noTranspose)
+        x2,y2=converter.convertCoordinate(node.get('x2'),node.get('y2'),noTranspose)
+        self.x1=str(x1)
+        self.y1=str(y1)
+        self.x2=str(x2)
+        self.y2=str(y2)
+        layer=node.get('layer')
+        self.layer=layer;
+        
+        self.lines=[]
+        x21=node.get('x1')
+        y21=node.get('y1')
+        x22=node.get('x2')
+        y22=node.get('y2')
+        wire0={'x1':x21,'y1':y21,'x2':x22,'y2':y21,'width':0.127,'curve':None,'layer':layer}
+        wire1={'x1':x22,'y1':y21,'x2':x22,'y2':y22,'width':0.127,'curve':None,'layer':layer}
+        wire2={'x1':x22,'y1':y22,'x2':x21,'y2':y22,'width':0.127,'curve':None,'layer':layer}
+        wire3={'x1':x21,'y1':y22,'x2':x21,'y2':y21,'width':0.127,'curve':None,'layer':layer}
+        self.lines.append(Line(wire0,converter,noTranspose))
+        self.lines.append(Line(wire1,converter,noTranspose)) 
+        self.lines.append(Line(wire2,converter,noTranspose))
+        self.lines.append(Line(wire3,converter,noTranspose)) 
+    
+    def moduleRep(self):
+        myString="";
+        for line in self.lines:
+            myString+=line.moduleRep()
+        return myString
+    
+    def boardRep(self):
+        myString=""
+        return myString
+    
+    def symRep(self):
+        myString="S "+self.x1+" "+self.y1+" "+self.x2+" "+self.y2+" 0 1 0 F\n"
+        return myString
+    
 class Text(object):
     __slots__=("val","x","y","width","size","rot","mirror","hJust","vJust","layer","style","forceCenter")
     
