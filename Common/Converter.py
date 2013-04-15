@@ -53,6 +53,12 @@ class Converter(object):
         cX=(right-left)/2
         cY=(top-bottom)/2
         
+        if abs(cX) == float('inf'):
+            cX=0
+            
+        if abs(cY) == float('inf'):
+            cY=0
+        
         cX,cY=self.convertCoordinate(cX,cY,True)
         
         self.cX=cX
