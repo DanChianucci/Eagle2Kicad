@@ -71,8 +71,12 @@ class Module(object):
                 circ = Circle(circ, converter, True)
                 self.drawings.append(circ)
         
-        #TODO Rect support in Module
-        
+        rectangles = node.findall("rectangle")
+        if rectangles != None:
+            for rect in rectangles:
+                rect = Rectangle(rect, converter, True)
+                self.drawings.append(rect)
+
         self.texts = []
         #TODO replacing the ref with the actual name will mess up the positioning
         texts = node.findall("text")

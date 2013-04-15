@@ -2,10 +2,11 @@ import sys,inspect,os,traceback,datetime
 from argparse import ArgumentParser
 
 scriptDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-sys.path.append(scriptDir+"\\Board")
-sys.path.append(scriptDir+"\\Library")
-sys.path.append(scriptDir+"\\Schematic")
-sys.path.append(scriptDir+"\\Common")
+# r'' means a raw string for multi environment (win/mac/*nix)
+sys.path.append(scriptDir+r'/Board')
+sys.path.append(scriptDir+r'/Library')
+sys.path.append(scriptDir+r'/Schematic')
+sys.path.append(scriptDir+r'/Common')
 
 
 from Board import Board
