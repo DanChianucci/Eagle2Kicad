@@ -18,7 +18,7 @@ from tkinter.filedialog   import askopenfilename
 from tkinter.filedialog   import asksaveasfilename
 from tkinter.messagebox	import showinfo,showerror
 from xml.etree.ElementTree import ElementTree
-
+from xml.etree.ElementTree import XMLParser
 
 
 logFile=open("Log.txt","a")
@@ -46,7 +46,9 @@ def startGui():
 	root.mainloop()
 
 def getRootNode(fileName):
-	node = ElementTree(file=fileName)
+	parser = XMLParser(encoding="UTF-8")
+	node = ElementTree()
+	node.parse(fileNameparser)
 	node = node.getroot()
 	return node
 
