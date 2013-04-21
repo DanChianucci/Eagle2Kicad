@@ -48,7 +48,7 @@ def startGui():
 def getRootNode(fileName):
 	parser = XMLParser(encoding="UTF-8")
 	node = ElementTree()
-	node.parse(fileNameparser)
+	node.parse(fileName,parser)
 	node = node.getroot()
 	return node
 
