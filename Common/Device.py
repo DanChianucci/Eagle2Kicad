@@ -1,44 +1,49 @@
-'''
+"""
 Created on 9 Oct 2012
 
 @author: konmik
-'''
-class Connect(object): 
-	"represents connect tag"
-	def __init__(self, node, converter):
+"""
+
+
+class Connect(object):
+    """represents connect tag"""
+
+    def __init__(self, node, converter):
 		self.gate = node.get("gate")
 		self.pin = node.get("pin")
 		self.pad = node.get("pad")
 				
 class Technology(object):
-	"represents technology tag"
-	def __init__(self, node, converter):
+    """represents technology tag"""
+
+    def __init__(self, node, converter):
 		self.name = node.get("name")
 
 class Device(object):
-	"represents device tag"
-	def __init__(self, node, converter):
+    """represents device tag"""
+
+    def __init__(self, node, converter):
 		self.connects = {}
 		self.name = node.get("name")
 		self.package = node.get("package")
 		self.fullName = self.name
 		self.technologies = []
 		
-		technologies = node.find("technologies") 
-		if technologies != None:
-			for technology in technologies:
+		technologies = node.find("technologies")
+        if technologies is not None:
+            for technology in technologies:
 				t = Technology(technology, converter)
 				self.technologies.append(t)
 
-		connects = node.find("connects") 
-		if connects != None:
-			for connect in connects:
+		connects = node.find("connects")
+        if connects is not None:
+            for connect in connects:
 				c = Connect(connect, converter)
 				self.connects[c.pin] = c
 				
 	def setFullName(self, prefix):
-		if(prefix[-1:] == "*"): #does set name has *
-			self.fullName = prefix[:-1] + self.name
+        if prefix[-1:] == "*": #does set name has *
+            self.fullName = prefix[:-1] + self.name
 		else:	
 			self.fullName = prefix + self.name 
 				
@@ -46,8 +51,9 @@ class Device(object):
 		return  self.connects[name].pad	
 									
 class Gate(object):
-	"represents gate tag, it is used when we may swap patrt o device"
-	def __init__(self, node, converter):
+    """represents gate tag, it is used when we may swap patrt o device"""
+
+    def __init__(self, node, converter):
 		self.name = node.get("name")
 		self.symbol = node.get("symbol")
 		self.x = node.get("x")
@@ -61,8 +67,9 @@ class Gate(object):
 		return self.name	
 								
 class Deviceset(object):
-	"represents deviceset tag, it is used to mutch differnt packages to the same symbol"
-	def __init__(self, node, converter):
+    """represents deviceset tag, it is used to mutch differnt packages to the same symbol"""
+
+    def __init__(self, node, converter):
 		self.gates = [] 
 		self.devices = []
 		
@@ -83,10 +90,10 @@ class Deviceset(object):
 
 			
 	def isSymbolIncluded(self, symbol):
-		"@return true if here is a gate for the symbol"
-		return ( symbol in self.gates)
-	
-	def getDevices(self):
+        """@return true if here is a gate for the symbol"""
+        return symbol in self.gates
+
+    def getDevices(self):
 		return self.devices
 	
 	def getGates(self):

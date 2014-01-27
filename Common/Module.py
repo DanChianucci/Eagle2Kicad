@@ -1,41 +1,41 @@
-from Shapes import *
+from Common.Shapes import *
+
 
 class Module(object):
-    '''
+    """
     Represents a module aka footprint
-    '''
+    """
     __slots__ = ("x", "y", "rotation", "mirror", "layer", "package",
-               "description", "keywords", "reference", "value", "drawings",
-               "pads", "texts","contacts")
+                 "description", "keywords", "reference", "value", "drawings",
+                 "pads", "texts", "contacts")
 
     def __str__(self):
         return "Module: " + str(self.package)
-    
+
     def __init__(self, node, converter, elementNode=None, contacts=None):
-        if elementNode==None:
+        if elementNode is None:
             self.x = 0
             self.y = 0
             self.rotation = 0
             self.mirror = False
             self.layer = 15
-            
+
         else:
-            self.x,self.y = converter.convertCoordinate(elementNode.get("x"),elementNode.get("y")) 
+            self.x, self.y = converter.convertCoordinate(elementNode.get("x"), elementNode.get("y"))
             rotation = converter.convertRotation(elementNode.get("rot"))
-            self.rotation=rotation.get('rot')
+            self.rotation = rotation.get('rot')
             self.mirror = rotation.get('mirror')
-            self.layer= 0 if self.mirror else 15
-        
-        if contacts==None:
-            self.contacts={}
+            self.layer = 0 if self.mirror else 15
+
+        if contacts is None:
+            self.contacts = {}
         else:
-            self.contacts=contacts
-            
-            
+            self.contacts = contacts
+
         self.package = node.get("name")
-        
+
         description = node.find("description")
-        if description != None:
+        if description is not None:
             self.description = str(description.text).split('\n')[0]
         else:
             self.description = ""
@@ -45,34 +45,34 @@ class Module(object):
         self.value = "T1 0 0 0 0 0 0 N I 26 \"val**\"\n"
         self.drawings = []
         self.pads = []
-        
-        self.getParts(node,converter,elementNode)
 
-    def getParts(self, node, converter,elementNode=None):
+        self.getParts(node, converter, elementNode)
+
+    def getParts(self, node, converter, elementNode=None):
         #(polygon | wire | text | circle | rectangle | frame | hole | pad | smd)
 
         self.drawings = []
 
         lines = node.findall("wire")
-        if lines != None:
+        if lines is not None:
             for line in lines:
                 line = Line(line, converter, True)
                 self.drawings.append(line)
-                
+
         polygons = node.findall("polygon")
-        if polygons != None:
+        if polygons is not None:
             for polygon in polygons:
                 polygon = Polyline(polygon, converter, True)
                 self.drawings.append(polygon)
-                
+
         circles = node.findall("circle")
-        if circles != None:
+        if circles is not None:
             for circ in circles:
                 circ = Circle(circ, converter, True)
                 self.drawings.append(circ)
-        
+
         rectangles = node.findall("rectangle")
-        if rectangles != None:
+        if rectangles is not None:
             for rect in rectangles:
                 rect = Rectangle(rect, converter, True)
                 self.drawings.append(rect)
@@ -80,42 +80,42 @@ class Module(object):
         self.texts = []
         #TODO replacing the ref with the actual name will mess up the positioning
         texts = node.findall("text")
-        if texts != None:
+        if texts is not None:
             for text in texts:
                 text = Text(text, converter, True)
                 if text.val == ">NAME":
-                    if elementNode != None:
-                        text.val=elementNode.get("name")
+                    if elementNode is not None:
+                        text.val = elementNode.get("name")
                     self.reference = text.moduleRep(0)
                 elif text.val == ">VALUE":
-                    if elementNode != None:
-                        text.val=elementNode.get("value")
+                    if elementNode is not None:
+                        text.val = elementNode.get("value")
                     self.value = text.moduleRep(1)
                 else:
                     self.texts.append(text)
-        
-        self.pads = []                       
+
+        self.pads = []
         holes = node.findall("hole")
         for hole in holes:
-                hole = Hole(hole, converter, True)
-                self.pads.append(hole)
+            hole = Hole(hole, converter, True)
+            self.pads.append(hole)
 
-        
         pads = node.findall("pad")
         for pad in pads:
-            contact=self.contacts.get(pad.get("name"));
+            contact = self.contacts.get(pad.get("name"))
             pad = Pad(pad, converter, self.rotation, self.mirror, contact)
             self.pads.append(pad)
-        
+
         smds = node.findall("smd")
         for smd in smds:
-            contact=self.contacts.get(smd.get("name"));
+            contact = self.contacts.get(smd.get("name"))
             smd = Pad(smd, converter, self.rotation, self.mirror, contact)
             self.pads.append(smd)
 
     def write(self, outFile):
         outFile.write("$MODULE " + self.package + "\n")
-        outFile.write("Po " + str(self.x) + " " + str(self.y) + " " + str(self.rotation) + " " + str(self.layer)+" "+ "00000000 00000000 ~~\n")
+        outFile.write("Po " + str(self.x) + " " + str(self.y) + " " + str(self.rotation) + " " + str(
+            self.layer) + " " + "00000000 00000000 ~~\n")
         outFile.write("Li " + self.package + "\n")
         if self.description != "":
             outFile.write("Cd " + self.description + "\n")
@@ -137,17 +137,17 @@ class Module(object):
             outFile.write(elem.moduleRep())
 
 
-#        #Pads
+        #        #Pads
         for pad in self.pads:
             outFile.write(pad.moduleRep())
 
-
         outFile.write("$EndMODULE " + self.package + "\n")
+
 
 class Pad(object):
     __slots__ = ("name", "drill", "xSize", "ySize", "x", "y", "contact", "kind", "shape", "layerMask", "rot")
 
-    def __init__(self, node, converter,modRot=0,modMirror=False,contact=None):
+    def __init__(self, node, converter, modRot=0, modMirror=False, contact=None):
         #PAD Shape: (square | round | octagon | long | offset)
         """
         Gets info for a given pad
@@ -163,10 +163,10 @@ class Pad(object):
         pName = node.get("name")
         shapeType = node.tag
         pX, pY = converter.convertCoordinate(node.get('x'), node.get('y'), True)
-        
+
         if shapeType == 'pad':
             drill = converter.convertUnit(node.get('drill'))
-            if node.get('diameter') == None:
+            if node.get('diameter') is None:
                 diameter = str(int(int(drill) * 1.5))#TODO find default diameter for vias i think its 0
             else:
                 diameter = converter.convertUnit(node.get('diameter'))
@@ -191,8 +191,8 @@ class Pad(object):
             kind = '0'
             layerMask = '0'
             shape = '0'
-            
-        if not node.get('rot') == None:
+
+        if not node.get('rot') is None:
             pRot = converter.convertRotation(node.get('rot')).get('rot')
             rot = int(pRot) + int(modRot)
 
@@ -210,14 +210,16 @@ class Pad(object):
 
     def moduleRep(self):
         myString = '$PAD\n'
-        myString += 'Sh "' + self.name + '" ' + self.shape + ' ' + self.xSize + ' ' + self.ySize + ' 0 0 ' + self.rot + '\n'
+        myString += 'Sh "' + self.name + '" ' + self.shape + ' ' + self.xSize + ' ' + self.ySize + ' 0 0 ' + self.rot \
+                    + '\n'
         myString += 'Dr ' + self.drill + ' 0 0\n'
         myString += 'At ' + self.kind + ' N ' + self.layerMask + '\n'
-        if not self.contact == None:
+        if not self.contact is None:
             myString += 'Ne ' + self.contact.get('num') + ' "' + self.contact.get('name') + '"\n'
         myString += 'Po ' + self.x + ' ' + self.y + '\n'
         myString += '$EndPAD\n'
         return myString
+
 
 class Hole(object):
     __slots__ = ("x", "y", "drill", "layerMask")
