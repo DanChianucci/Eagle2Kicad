@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Eagle2kicad by DanChianucci</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Eagle2kicad</h1>
+        <p>Converts an Eagle 6.0+ .brd into a kicad .brd</p>
+
+        <p class="view"><a href="https://github.com/DanChianucci/Eagle2Kicad">View the Project on GitHub <small>DanChianucci/Eagle2Kicad</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/DanChianucci/Eagle2Kicad/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/DanChianucci/Eagle2Kicad/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/DanChianucci/Eagle2Kicad">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="eagle2kicad-eda-converter" class="anchor" href="#eagle2kicad-eda-converter"><span class="octicon octicon-link"></span></a>Eagle2KiCAD EDA Converter</h1>
+
+<hr><p>All scripts are written in the python 3.2 grammer.  Please try it out and report any issues to the issue tracker.</p>
+
+<p>If you would like to contribute, please fork this repository, make your changes, and then send me a pull request.</p>
+
+<h2>
+<a name="features-so-far" class="anchor" href="#features-so-far"><span class="octicon octicon-link"></span></a>Features so far:</h2>
+
+<ul>
+<li>Convert Boards
+
+<ul>
+<li>Rectangle Graphics are not converted</li>
+</ul>
+</li>
+<li>Convert Libraries
+
+<ul>
+<li>Schematic Symbol Conversions  (.lib)</li>
+<li>Board Footprint Conversion (.mod)</li>
+</ul>
+</li>
+</ul><h2>
+<a name="gui" class="anchor" href="#gui"><span class="octicon octicon-link"></span></a>GUI:</h2>
+
+<p>To Convert a file run Start.py located in the root of the download zip file</p>
+
+<ol>
+<li>A gui will pop up asking what to do.</li>
+<li>Choose an option</li>
+<li>Select the file to convert.</li>
+<li>Select the Output file(s)</li>
+<li>A message will appear stating whether or not the conversion was sucessful</li>
+<li>Check the log.txt and Console to see if there were any issues</li>
+</ol><h2>
+<a name="cmd-line" class="anchor" href="#cmd-line"><span class="octicon octicon-link"></span></a>CMD Line:</h2>
+
+<p>Alternatively you may use the command line options.</p>
+
+<pre><code>usage: start.py [-h] [-l inFile symFile modFile] [-b inFile brdFile]
+            [-s inFile schFile]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -l inFile symFile modFile, -L inFile symFile modFile, --Library inFile symFile modFile
+                        Convert an Eagle Library
+  -b inFile brdFile, -B inFile brdFile, --Board inFile brdFile
+                        Convert an Eagle Board
+  -s inFile schFile, -S inFile schFile, --Schematic inFile schFile
+                        Convert an Eagle Schematic
+</code></pre>
+
+<blockquote>
+<p><strong>Note:</strong> </p>
+
+<ul>
+<li>Tags may be repeated multiple times. This feature can be used to do batch conversions</li>
+<li>Tags may be mixed together.  You are not limited to converting only boards or only libraries</li>
+</ul>
+</blockquote>
+
+<h2>
+<a name="contributors" class="anchor" href="#contributors"><span class="octicon octicon-link"></span></a>Contributors:</h2>
+
+<ul>
+<li>Trump211</li>
+<li>Magtux</li>
+<li>Myval</li>
+<li>yoneken</li>
+<li>If I have forgotten someone please send me an email and I'll add to this list</li>
+</ul><h1>
+<a name="notice" class="anchor" href="#notice"><span class="octicon octicon-link"></span></a>!!!NOTICE:!!!</h1>
+
+<hr><p>All boards converted using this script should be checked over to make sure everything looks good.
+Take care to notice pad sizes, via sizes, via layers, etc.  Make sure to run a DRC.  </p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/DanChianucci">DanChianucci</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
