@@ -283,7 +283,7 @@ class Polyline(object):
     def symRep(self):
         myString = ""
         for line in self.lines:
-            myString += line.symRep
+            myString += line.symRep()
         return myString
 
     def boardRep(self):

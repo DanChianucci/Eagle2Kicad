@@ -102,17 +102,17 @@ class Symbol(object):
         ENDDEF
         """
         for polygon in self.polygons:
-            symFile.write(polygon.symRep)
+            symFile.write(polygon.symRep())
         for wire in self.wires:
-            symFile.write(wire.symRep)
+            symFile.write(wire.symRep())
         for text in self.texts:
-            symFile.write(text.symRep)
+            symFile.write(text.symRep())
         for pin in self.pins:
-            symFile.write(pin.symRep)
+            symFile.write(pin.symRep())
         for circle in self.circles:
-            symFile.write(circle.symRep)
+            symFile.write(circle.symRep())
         for rectangle in self.rectangles:
-            symFile.write(rectangle.symRep)
+            symFile.write(rectangle.symRep())
 
 
 class Pin(object):
