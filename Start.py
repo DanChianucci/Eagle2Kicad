@@ -3,9 +3,9 @@ import sys
 import traceback
 import datetime
 from argparse import ArgumentParser
-from Board import Board
-from Library import Library
-#from Schematic import Schematic
+from Board.Board import Board
+from Library.Library import Library
+#from Schematic.Schematic import Schematic
 from tkinter import Tk, Frame, Label, Button, RIDGE, BOTH, X
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename

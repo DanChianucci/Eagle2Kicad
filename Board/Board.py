@@ -5,7 +5,8 @@ Created on Apr 3, 2012
 """
 
 from xml.etree.ElementTree import ElementTree
-from Common import Converter, Module
+from Common.Converter import Converter
+from Common.Module import Module
 from Common.Shapes import Track, Via, Line, Circle, Polyline, Text, Zone
 
 
