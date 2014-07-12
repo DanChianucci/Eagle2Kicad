@@ -1,19 +1,21 @@
-/*/*.brd
-/*/*.000
+#Ignore Test Eagle/KiCad Files
+/testFiles
+*.brd
+*.lbr
+*.sch
+*.mod
+*.lib
+Log.txt
+
+#Ignore IDE Project Directories
 /.project
 /.pydevproject
-/*.000
-/*/*.xml
-/*/*.lbr
-/*/*.sch
-/*/__pycache__/
-/*/__pycache__/*.*
-/*/test.py
+/.idea
+/.settings
+
+#Ignore Reference
+Eagle.dtd
 Questions.txt
-/ignore/*.*
-/Library/Libraries/*
-/Library/Libraries/*/*.*
-/Eagle.dtd
-/Log.txt
-/testFiles/
-/test.py
+
+*test.py
+*.pyc
