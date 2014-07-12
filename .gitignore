@@ -19,3 +19,4 @@ Questions.txt
 
 *test.py
 *.pyc
+*__pycache__*
