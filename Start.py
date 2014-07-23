@@ -2,6 +2,7 @@ import sys
 
 import traceback
 import datetime
+import os.path
 from argparse import ArgumentParser
 from Board.Board import Board
 from Library.Library import Library
@@ -55,7 +56,8 @@ def convertBoardGUI():
 
     outFileName = asksaveasfilename(title="Board Output",
                                     filetypes=[('KiCad Board', '.brd'), ('all files', '.*')],
-                                    defaultextension='.brd')
+                                    defaultextension='.brd',
+                                    initialfile=os.path.splitext(fileName)[0]+"KiCad")
 
     val = convertBoard(fileName, outFileName)
     if val[0]:
@@ -97,11 +99,13 @@ def convertLibGUI():
 
     modFileName = asksaveasfilename(title="Module Output Filename",
                                     filetypes=[('KiCad Module', '.mod'), ('all files', '.*')],
-                                    defaultextension='.mod')
+                                    defaultextension='.mod',
+									initialfile=os.path.splitext(fileName)[0])
 
     symFileName = asksaveasfilename(title="Symbol Output Filename",
                                     filetypes=[('KiCad Symbol', '.lib'), ('all files', '.*')],
-                                    defaultextension='.lib')
+                                    defaultextension='.lib',
+									initialfile=os.path.splitext(fileName)[0])
 
     val = convertLib(fileName, symFileName, modFileName)
 
