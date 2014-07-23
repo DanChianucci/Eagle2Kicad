@@ -1,9 +1,13 @@
 #Eagle2KiCAD EDA Converter
 ----------------------------
-All scripts are written in the python 3.2 grammer.  Please try it out and report any issues to the issue tracker.
+
+This project aims to provide a simple way to convert an Eagle CAD project into a KiCad Project.
+
+All scripts are written in the python 3.2 grammar, and have been released under the MIT Licence.
+
+Please report any issues to the issue tracker
 
 If you would like to contribute, please fork this repository, make your changes, and then send me a pull request.
-
 
 Features so far:
 ----------------
