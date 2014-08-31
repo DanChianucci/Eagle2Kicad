@@ -50,7 +50,10 @@ class Device(object):
             self.fullName = prefix + self.name
 
     def getPadByPinName(self, name):
-        return self.connects[name].pad
+        if self.connects.get(name) is not None:
+            return self.connects.get(name).pad
+        else:
+            return "NC"
 
 
 class Gate(object):
