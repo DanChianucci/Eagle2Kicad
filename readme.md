@@ -35,8 +35,8 @@ CMD Line:
 
 Alternatively you may use the command line options.
 
-    usage: start.py [-h] [-l inFile symFile modFile] [-b inFile brdFile]
-                [-s inFile schFile]
+    usage: Eagle2KiCad [-h] [-l inFile symFile modFile] [-b inFile brdFile]
+                       [-s inFile schFile] [-v {0,1}]
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -46,6 +46,9 @@ Alternatively you may use the command line options.
                             Convert an Eagle Board
       -s inFile schFile, -S inFile schFile, --Schematic inFile schFile
                             Convert an Eagle Schematic
+      -v {0,1}, --verbosity {0,1}
+                            Verbosity Level
+
 
 >**Note:** 
 >

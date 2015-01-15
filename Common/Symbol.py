@@ -4,7 +4,7 @@ Created on Apr 5, 2012
 @author: Dan
 '''
 from Common.Shapes import *
-
+import logging
 
 class DevicePart(object):
     def __init__(self, device, symbolsDict, gates, converter):
@@ -20,6 +20,7 @@ class DevicePart(object):
             self.units += 1
 
     def write(self, symFile):
+
         """
         DEF name reference unused text_offset draw_pinnumber draw_pinname unit_count units_locked option_flag
         ALIAS name1 name2...
@@ -29,6 +30,7 @@ class DevicePart(object):
         ENDDRAW
         ENDDEF
         """
+        logging.debug("Writing Device "+self.device.fullName)
         self.isPower = "N" #just keep it normal it's mostly actual
 
         if self.isPower == "Y":
@@ -36,15 +38,16 @@ class DevicePart(object):
         else:
             token = ""
 
-        symFile.write("#Generated for " + self.device.fullName + " package " + self.device.package + "\n")
+        symFile.write("#Generated for " + self.device.fullName + " package " + str(self.device.package) + "\n")
         symFile.write("DEF " + self.name + " U 0 100 Y Y " + ( "%d" % self.units) \
                       + " 0 " + self.isPower + "\n")
         #TODO give actual names to fields in syms
         symFile.write("F0 \"" + token + "U\" 0 0 0 H I C CNN\n")
         symFile.write("F1 \"" + self.name + "\" 0 0 0 H I C CNN \n")
-        symFile.write("$FPLIST\n")
-        symFile.write(" " + self.device.package + "\n")
-        symFile.write("$ENDFPLIST\n")
+        if self.device.package is not None:
+            symFile.write("$FPLIST\n")
+            symFile.write(" " + self.device.package + "\n")
+            symFile.write("$ENDFPLIST\n")
         symFile.write("DRAW\n")
 
         for symbol in self.symbols:
@@ -52,7 +55,6 @@ class DevicePart(object):
 
         symFile.write("ENDDRAW\n")
         symFile.write("ENDDEF\n")
-
 
 class Symbol(object):
     __slots__ = ("name", "isPower", "polygons", "wires", "texts", "pins", "circles", "rectangles", "package", "device")
@@ -101,6 +103,7 @@ class Symbol(object):
         ENDDRAW
         ENDDEF
         """
+        logging.debug("Writing Symbol "+self.name)
         for polygon in self.polygons:
             symFile.write(polygon.symRep())
         for wire in self.wires:

@@ -1,7 +1,7 @@
 import sys
-
+import logging
 import traceback
-import datetime
+from datetime import datetime
 import os.path
 from argparse import ArgumentParser
 from Board.Board import Board
@@ -14,8 +14,6 @@ from tkinter.messagebox import showinfo, showerror
 from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import XMLParser
 
-
-logFile = open("Log.txt", "a")
 
 
 def startGui():
@@ -39,6 +37,20 @@ def startGui():
     label.pack(fill=X, expand=1)
 
     root.mainloop()
+
+def startCmdLine(args):
+    if args.Schem is not None:
+        for sch in args.Schem:
+            convertSch(sch[0], sch[1])
+
+    if args.Board is not None:
+        for brd in args.Board:
+            convertBoard(brd[0], brd[1])
+
+    if args.Library is not None:
+        for lib in args.Library:
+            convertLib(lib[0], lib[1], lib[2])
+
 
 
 def getRootNode(fileName):
@@ -67,9 +79,9 @@ def convertBoardGUI():
 
 
 def convertBoard(fileName, outFileName):
-    logFile.write("*******************************************\n")
-    logFile.write("Converting: " + fileName + "\n")
-    logFile.write("Outputing: " + outFileName + "\n\n")
+    logging.info("*******************************************")
+    logging.info("Converting: " + fileName)
+    logging.info("Outputing: " + outFileName + "\n")
 
     try:
 
@@ -81,14 +93,14 @@ def convertBoard(fileName, outFileName):
         outFile.close()
 
     except BaseException as e:
-        logFile.write("Conversion Failed\n\n")
-        logFile.write(traceback.format_exc())
-        logFile.write("*******************************************\n\n\n")
+        logging.error("Conversion Failed")
+        logging.error(traceback.format_exc())
+        logging.info("*******************************************\n\n")
         return False, "Error Converting Board \n" + str(e) + \
                       "\nSee Log.txt for more info"
 
-    logFile.write("Conversion Successfull\n\n")
-    logFile.write("*******************************************\n\n\n")
+    logging.info("Conversion Successfull")
+    logging.info("*******************************************\n\n")
     return True, "The Board Has Finished Converting"
 
 
@@ -116,16 +128,16 @@ def convertLibGUI():
 
 
 def convertLib(fileName, symFileName, modFileName):
-    logFile.write("*******************************************\n")
-    logFile.write("Converting Lib: " + fileName + "\n")
-    logFile.write("Module Output: " + modFileName + "\n")
-    logFile.write("Symbol Output: " + symFileName + "\n")
+    logging.info("*******************************************")
+    logging.info("Converting Lib: " + fileName)
+    logging.info("Module Output: " + modFileName)
+    logging.info("Symbol Output: " + symFileName)
 
     name = fileName.replace("/", "\\")
     name = name.split("\\")[-1]
     name = name.split(".")[0]
 
-    logFile.write("Lib Name: " + name + "\n")
+    logging.info("Lib Name: " + name + "\n")
 
     try:
         node = getRootNode(fileName)
@@ -142,15 +154,16 @@ def convertLib(fileName, symFileName, modFileName):
 
         modFile.close()
         symFile.close()
+
     except BaseException as e:
-        logFile.write("Conversion Failed\n\n")
-        logFile.write(traceback.format_exc())
-        logFile.write("*******************************************\n\n\n")
+        logging.error("Error Converting Library: '" + name + "'")
+        logging.error(traceback.format_exc())
+        logging.info("*******************************************\n\n")
+        return False, "Error Converting Library \n" + str(e) + \
+                      "\nSee Log.txt for more info"
 
-        return False, "Error Converting Library: '" + name + "'\nError: " + str(e) + "\nSee Log.txt for more info"
-
-    logFile.write("Conversion Successfull\n")
-    logFile.write("*******************************************\n\n\n")
+    logging.info("Conversion Successfull")
+    logging.info("*******************************************\n\n")
 
     return True, "Conversion of Library '" + name + "' Complete"
 
@@ -164,18 +177,19 @@ def convertSchGUI():
 
 
 def convertSch(schFile, outFile):
-    logFile.write("*******************************************\n")
-    logFile.write("Converting Schem: \n")
-    logFile.write("Conversion Failed: \n\n")
-    logFile.write("Schematic Conversion not yet Supported\n\n")
-    logFile.write("*******************************************\n\n\n")
+    logging.info("*******************************************")
+    logging.info("Converting Schem: "+schFile)
+    logging.info("Outputing: " + outFile)
+    logging.error("Error Converting  "+schFile+":")
+    logging.error("Schematic Conversion not yet Supported")
+    logging.info("*******************************************\n\n")
 
     return False, "Converting Schematics is not yet supported"
 
 
-def startCmdLine():
+def parseargs():
     # Setup argument parser
-    parser = ArgumentParser()
+    parser = ArgumentParser(prog="Eagle2KiCad")
     parser.add_argument("-l", "-L", "--Library",
                         dest="Library",
                         nargs=3,
@@ -200,45 +214,47 @@ def startCmdLine():
                         action="append",
                         type=str)
 
+    parser.add_argument('-v','--verbosity',
+                        dest="Verbosity",
+                        choices=(0,1),
+                        default=0,
+                        type=int,
+                        help="Verbosity Level ")
+
+
     # Process arguments
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    if args.Schem != None:
-        for sch in args.Schem:
-            val = convertSch(sch[0], sch[1])
-            if val[0]:
-                sys.stdout.write(val[1] + "\n")
-            else:
-                sys.stderr.write(val[1] + "\n")
 
-    if args.Board != None:
-        for brd in args.Board:
-            val = convertBoard(brd[0], brd[1])
-            if val[0]:
-                sys.stdout.write(val[1] + "\n")
-            else:
-                sys.stderr.write(val[1] + "\n")
+def setupLogging(verbosity,use_console):
+    lvl=(logging.INFO,logging.DEBUG)[verbosity]
 
-    if args.Library != None:
-        for lib in args.Library:
-            val = convertLib(lib[0], lib[1], lib[2])
-            if val[0]:
-                sys.stdout.write(val[1] + "\n")
-            else:
-                sys.stderr.write(val[1] + "\n")
+    logging.getLogger().setLevel(0);
 
+    fh = logging.FileHandler("Log.txt")
+    fh.setLevel(lvl)
+    logging.getLogger().addHandler(fh)
+
+    if use_console:
+        ch = logging.StreamHandler()
+        ch.setLevel(lvl)
+        logging.getLogger().addHandler(ch)
+
+    logging.info("###############################################################################")
+    logging.info("#Session: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("###############################################################################")
+    logging.log(lvl,"Logging at Level: "+logging.getLevelName(lvl)+"\n\n")
 
 def main():
-    now = datetime.datetime.now()
-    logFile.write("###############################################################################\n")
-    logFile.write("#Session: " + now.strftime("%Y-%m-%d %H:%M:%S") + "\n")
-    logFile.write("###############################################################################\n\n\n")
 
-    if len(sys.argv) > 1:
-        startCmdLine()
+    args = parseargs();
+    use_console = not (args.Board is None and args.Library is None and args.Schem is None)
+    setupLogging(args.Verbosity,use_console)
+
+    if use_console:
+        startCmdLine(args)
     else:
         startGui()
-
 
 if __name__ == "__main__":
     main()

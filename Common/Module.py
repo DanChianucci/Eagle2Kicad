@@ -1,5 +1,5 @@
 from Common.Shapes import *
-
+import logging
 
 class Module(object):
     """
@@ -113,6 +113,8 @@ class Module(object):
             self.pads.append(smd)
 
     def write(self, outFile):
+        logging.debug("Writing Module "+str(self.package))
+
         outFile.write("$MODULE " + self.package + "\n")
         outFile.write("Po " + str(self.x) + " " + str(self.y) + " " + str(self.rotation) + " " + str(
             self.layer) + " " + "00000000 00000000 ~~\n")
