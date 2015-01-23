@@ -146,7 +146,7 @@ class Pin(object):
         self.x = str(x)
         self.y = str(y)
 
-        self.getShape(node, converter);
+        self.getShape(node, converter)
         self.getDirection(node)
         self.getVisibility(node)
         self.pad = self.name

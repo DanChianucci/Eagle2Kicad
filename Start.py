@@ -1,22 +1,29 @@
-import sys
 import logging
 import traceback
-from datetime import datetime
 import os.path
+from datetime import datetime
 from argparse import ArgumentParser
 from Board.Board import Board
 from Library.Library import Library
-#from Schematic.Schematic import Schematic
-from tkinter import Tk, Frame, Label, Button, RIDGE, BOTH, X
-from tkinter.filedialog import askopenfilename
-from tkinter.filedialog import asksaveasfilename
-from tkinter.messagebox import showinfo, showerror
+# from Schematic.Schematic import Schematic
 from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import XMLParser
 
 
+def import_tk():
+    global Tk, Frame, Label, Button, RIDGE, BOTH, X, askopenfilename, asksaveasfilename, showinfo, showerror
+    from tkinter import Tk, Frame, Label, Button, RIDGE, BOTH, X
+    from tkinter.filedialog import askopenfilename
+    from tkinter.filedialog import asksaveasfilename
+    from tkinter.messagebox import showinfo, showerror
+
 
 def startGui():
+    try:
+        import_tk()
+    except:
+        logging.error("Error Starting GUI, Could Not Find TK import")
+
     root = Tk()
     root.wm_title("Eagle V6 to KiCad Converter")
     root.wm_minsize(400, 200)
@@ -62,14 +69,11 @@ def getRootNode(fileName):
 
 
 def convertBoardGUI():
-    fileName = askopenfilename(title="Board Input",
-                               filetypes=[('Eagle V6 Board', '.brd'), ('all files', '.*')],
+    fileName = askopenfilename(title="Board Input", filetypes=[('Eagle V6 Board', '.brd'), ('all files', '.*')],
                                defaultextension='.brd')
 
-    outFileName = asksaveasfilename(title="Board Output",
-                                    filetypes=[('KiCad Board', '.brd'), ('all files', '.*')],
-                                    defaultextension='.brd',
-                                    initialfile=os.path.splitext(fileName)[0]+"KiCad")
+    outFileName = asksaveasfilename(title="Board Output", filetypes=[('KiCad Board', '.brd'), ('all files', '.*')],
+                                    defaultextension='.brd', initialfile=os.path.splitext(fileName)[0] + "KiCad")
 
     val = convertBoard(fileName, outFileName)
     if val[0]:
@@ -96,8 +100,7 @@ def convertBoard(fileName, outFileName):
         logging.error("Conversion Failed")
         logging.error(traceback.format_exc())
         logging.info("*******************************************\n\n")
-        return False, "Error Converting Board \n" + str(e) + \
-                      "\nSee Log.txt for more info"
+        return False, "Error Converting Board \n" + str(e) + "\nSee Log.txt for more info"
 
     logging.info("Conversion Successfull")
     logging.info("*******************************************\n\n")
@@ -105,19 +108,16 @@ def convertBoard(fileName, outFileName):
 
 
 def convertLibGUI():
-    fileName = askopenfilename(title="Input Library",
-                               filetypes=[('Eagle V6 Library', '.lbr'), ('all files', '.*')],
+    fileName = askopenfilename(title="Input Library", filetypes=[('Eagle V6 Library', '.lbr'), ('all files', '.*')],
                                defaultextension='.lbr')
 
     modFileName = asksaveasfilename(title="Module Output Filename",
-                                    filetypes=[('KiCad Module', '.mod'), ('all files', '.*')],
-                                    defaultextension='.mod',
-									initialfile=os.path.splitext(fileName)[0])
+                                    filetypes=[('KiCad Module', '.mod'), ('all files', '.*')], defaultextension='.mod',
+                                    initialfile=os.path.splitext(fileName)[0])
 
     symFileName = asksaveasfilename(title="Symbol Output Filename",
-                                    filetypes=[('KiCad Symbol', '.lib'), ('all files', '.*')],
-                                    defaultextension='.lib',
-									initialfile=os.path.splitext(fileName)[0])
+                                    filetypes=[('KiCad Symbol', '.lib'), ('all files', '.*')], defaultextension='.lib',
+                                    initialfile=os.path.splitext(fileName)[0])
 
     val = convertLib(fileName, symFileName, modFileName)
 
@@ -159,8 +159,7 @@ def convertLib(fileName, symFileName, modFileName):
         logging.error("Error Converting Library: '" + name + "'")
         logging.error(traceback.format_exc())
         logging.info("*******************************************\n\n")
-        return False, "Error Converting Library \n" + str(e) + \
-                      "\nSee Log.txt for more info"
+        return False, "Error Converting Library \n" + str(e) + "\nSee Log.txt for more info"
 
     logging.info("Conversion Successfull")
     logging.info("*******************************************\n\n")
@@ -178,9 +177,9 @@ def convertSchGUI():
 
 def convertSch(schFile, outFile):
     logging.info("*******************************************")
-    logging.info("Converting Schem: "+schFile)
+    logging.info("Converting Schem: " + schFile)
     logging.info("Outputing: " + outFile)
-    logging.error("Error Converting  "+schFile+":")
+    logging.error("Error Converting  " + schFile + ":")
     logging.error("Schematic Conversion not yet Supported")
     logging.info("*******************************************\n\n")
 
@@ -190,35 +189,16 @@ def convertSch(schFile, outFile):
 def parseargs():
     # Setup argument parser
     parser = ArgumentParser(prog="Eagle2KiCad")
-    parser.add_argument("-l", "-L", "--Library",
-                        dest="Library",
-                        nargs=3,
-                        metavar=("inFile", "symFile", "modFile"),
-                        help="Convert an Eagle Library",
-                        action="append",
-                        type=str)
+    parser.add_argument("-l", "-L", "--Library", dest="Library", nargs=3, metavar=("inFile", "symFile", "modFile"),
+                        help="Convert an Eagle Library", action="append", type=str)
 
-    parser.add_argument("-b", "-B", "--Board",
-                        dest="Board",
-                        nargs=2,
-                        metavar=("inFile", "brdFile"),
-                        help="Convert an Eagle Board",
-                        action="append",
-                        type=str)
+    parser.add_argument("-b", "-B", "--Board", dest="Board", nargs=2, metavar=("inFile", "brdFile"),
+                        help="Convert an Eagle Board", action="append", type=str)
 
-    parser.add_argument("-s", "-S", "--Schematic",
-                        dest="Schem",
-                        nargs=2,
-                        metavar=("inFile", "schFile"),
-                        help="Convert an Eagle Schematic",
-                        action="append",
-                        type=str)
+    parser.add_argument("-s", "-S", "--Schematic", dest="Schem", nargs=2, metavar=("inFile", "schFile"),
+                        help="Convert an Eagle Schematic", action="append", type=str)
 
-    parser.add_argument('-v','--verbosity',
-                        dest="Verbosity",
-                        choices=(0,1),
-                        default=0,
-                        type=int,
+    parser.add_argument('-v', '--verbosity', dest="Verbosity", choices=(0, 1), default=0, type=int,
                         help="Verbosity Level ")
 
 
@@ -226,10 +206,10 @@ def parseargs():
     return parser.parse_args()
 
 
-def setupLogging(verbosity,use_console):
-    lvl=(logging.INFO,logging.DEBUG)[verbosity]
+def setupLogging(verbosity, use_console):
+    lvl = (logging.INFO, logging.DEBUG)[verbosity]
 
-    logging.getLogger().setLevel(0);
+    logging.getLogger().setLevel(0)
 
     fh = logging.FileHandler("Log.txt")
     fh.setLevel(lvl)
@@ -243,18 +223,23 @@ def setupLogging(verbosity,use_console):
     logging.info("###############################################################################")
     logging.info("#Session: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     logging.info("###############################################################################")
-    logging.log(lvl,"Logging at Level: "+logging.getLevelName(lvl)+"\n\n")
+    logging.log(lvl, "Logging at Level: " + logging.getLevelName(lvl) + "\n\n")
+
 
 def main():
-
-    args = parseargs();
+    args = parseargs()
     use_console = not (args.Board is None and args.Library is None and args.Schem is None)
-    setupLogging(args.Verbosity,use_console)
+    setupLogging(args.Verbosity, use_console)
 
     if use_console:
         startCmdLine(args)
     else:
         startGui()
+
+    for handler in logging.root.handlers[:]:
+        handler.close()
+        logging.root.removeHandler(handler)
+
 
 if __name__ == "__main__":
     main()
