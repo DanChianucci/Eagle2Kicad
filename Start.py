@@ -3,13 +3,16 @@ import traceback
 import os.path
 from datetime import datetime
 from argparse import ArgumentParser
+
 from Board.Board import Board
 from Library.Library import Library
+
 # from Schematic.Schematic import Schematic
 from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import XMLParser
 
 
+# noinspection PyUnresolvedReferences
 def import_tk():
     global Tk, Frame, Label, Button, RIDGE, BOTH, X, askopenfilename, asksaveasfilename, showinfo, showerror
     from tkinter import Tk, Frame, Label, Button, RIDGE, BOTH, X
@@ -17,12 +20,12 @@ def import_tk():
     from tkinter.filedialog import asksaveasfilename
     from tkinter.messagebox import showinfo, showerror
 
-
 def startGui():
     try:
         import_tk()
     except:
-        logging.error("Error Starting GUI, Could Not Find TK import")
+        logging.error("Error Starting GUI. Could Not Find Tkinter module" + "Please install the Python Tkinter module")
+        return
 
     root = Tk()
     root.wm_title("Eagle V6 to KiCad Converter")
@@ -71,9 +74,13 @@ def getRootNode(fileName):
 def convertBoardGUI():
     fileName = askopenfilename(title="Board Input", filetypes=[('Eagle V6 Board', '.brd'), ('all files', '.*')],
                                defaultextension='.brd')
+    if not fileName:
+        return
 
     outFileName = asksaveasfilename(title="Board Output", filetypes=[('KiCad Board', '.brd'), ('all files', '.*')],
                                     defaultextension='.brd', initialfile=os.path.splitext(fileName)[0] + "KiCad")
+    if not outFileName:
+        return
 
     val = convertBoard(fileName, outFileName)
     if val[0]:
@@ -110,14 +117,17 @@ def convertBoard(fileName, outFileName):
 def convertLibGUI():
     fileName = askopenfilename(title="Input Library", filetypes=[('Eagle V6 Library', '.lbr'), ('all files', '.*')],
                                defaultextension='.lbr')
+    if not fileName: return
 
     modFileName = asksaveasfilename(title="Module Output Filename",
                                     filetypes=[('KiCad Module', '.mod'), ('all files', '.*')], defaultextension='.mod',
                                     initialfile=os.path.splitext(fileName)[0])
+    if not modFileName: return
 
     symFileName = asksaveasfilename(title="Symbol Output Filename",
                                     filetypes=[('KiCad Symbol', '.lib'), ('all files', '.*')], defaultextension='.lib',
                                     initialfile=os.path.splitext(fileName)[0])
+    if not symFileName: return
 
     val = convertLib(fileName, symFileName, modFileName)
 
@@ -186,6 +196,7 @@ def convertSch(schFile, outFile):
     return False, "Converting Schematics is not yet supported"
 
 
+
 def parseargs():
     # Setup argument parser
     parser = ArgumentParser(prog="Eagle2KiCad")
@@ -205,7 +216,6 @@ def parseargs():
     # Process arguments
     return parser.parse_args()
 
-
 def setupLogging(verbosity, use_console):
     lvl = (logging.INFO, logging.DEBUG)[verbosity]
 
@@ -215,16 +225,22 @@ def setupLogging(verbosity, use_console):
     fh.setLevel(lvl)
     logging.getLogger().addHandler(fh)
 
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.WARNING)  # always show Warnings and Errors in the Console
     if use_console:
-        ch = logging.StreamHandler()
-        ch.setLevel(lvl)
-        logging.getLogger().addHandler(ch)
+        ch.setLevel(lvl)  # Use user preference if in non-gui mode
+    logging.getLogger().addHandler(ch)
 
     logging.info("###############################################################################")
     logging.info("#Session: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     logging.info("###############################################################################")
     logging.log(lvl, "Logging at Level: " + logging.getLevelName(lvl) + "\n\n")
 
+
+def shutdownLogging():
+    for handler in logging.root.handlers[:]:
+        handler.close()
+        logging.root.removeHandler(handler)
 
 def main():
     args = parseargs()
@@ -236,9 +252,9 @@ def main():
     else:
         startGui()
 
-    for handler in logging.root.handlers[:]:
-        handler.close()
-        logging.root.removeHandler(handler)
+    shutdownLogging()
+
+
 
 
 if __name__ == "__main__":
