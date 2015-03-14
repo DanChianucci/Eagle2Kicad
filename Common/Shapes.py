@@ -5,6 +5,9 @@ Created on Apr 3, 2012
 """
 
 from math import sin, sqrt, atan2, copysign, radians, fabs, degrees
+import logging
+import re
+
 from Common.LayerIds import getLayerId, makeViaMask
 
 
@@ -385,6 +388,9 @@ class Text(object):
     def __init__(self, node, converter, noTranspose=False, offset=None):
 
         self.val = node.text
+        self.val = re.sub('"', '\\"', node.text)
+        self.val = re.sub(r"\n", "\\\\n", self.val)
+
         self.style = 'Normal'
         layer = getLayerId(node.get('layer'))
         x, y = converter.convertCoordinate(node.get('x'), node.get('y'), noTranspose)
@@ -421,8 +427,11 @@ class Text(object):
         rot = (rot + 3600) % 3600   #only work with pos angles
 
         if rot % 900 != 0:
-            print("Warning Text must be rotated increments of 90 degrees")
-            print("\tText: " + self.val + "\tRotation: " + str(rot))
+            logging.warning(
+                "Warning Text must be rotated increments of 90 degrees\n" + "\tText: " + self.val + "\tRotation: " +
+                str(
+                    rot))
+
 
         just = node.get("align")
         if just is None:
