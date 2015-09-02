@@ -5,6 +5,7 @@ Created on Apr 5, 2012
 '''
 from Common.Shapes import *
 import logging
+import copy
 
 class DevicePart(object):
     def __init__(self, device, symbolsDict, gates, converter):
@@ -83,8 +84,14 @@ class Symbol(object):
             self.rectangles.append(Rectangle(rectangle, converter, True))
 
         if device:
-            for pin in self.pins: #number all pins
-                pin.pad = device.getPadByPinName(pin.name)
+            for pin in self.pins[:]: #number all pins
+                pads = device.getPadsByPinName(pin.name)
+                pin.pad = pads[0]
+                for pad in pads[1:]:
+                    newpin = copy.copy(pin)
+                    newpin.pad = pad
+                    newpin.shape = "N" + newpin.shape
+                    self.pins.append(newpin)
 
         self.isPower = "P"
         for pin in self.pins:
@@ -224,4 +231,4 @@ class Pin(object):
         myString += self.direction + " " + self.shape + "\n"
         return myString
 
-        
+

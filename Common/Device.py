@@ -49,11 +49,11 @@ class Device(object):
         else:
             self.fullName = prefix + self.name
 
-    def getPadByPinName(self, name):
+    def getPadsByPinName(self, name):
         if self.connects.get(name) is not None:
-            return self.connects.get(name).pad
+            return self.connects.get(name).pad.split()
         else:
-            return "NC"
+            return ["NC"]
 
 
 class Gate(object):
