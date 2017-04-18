@@ -1,4 +1,4 @@
-#Eagle2KiCAD EDA Converter
+# Eagle2KiCAD EDA Converter
 ----------------------------
 
 This project aims to provide a simple way to convert an Eagle CAD project into a KiCad Project.
@@ -63,7 +63,7 @@ Contributors:
 - yoneken
 - If I have forgotten someone please send me an email and I'll add to this list
     
-#<font color="red">!!!NOTICE:!!!</font>
+# <font color="red">!!!NOTICE:!!!</font>
 ----------
 All boards converted using this script should be checked over to make sure everything looks good.
 Take care to notice pad sizes, via sizes, via layers, etc.  Make sure to run a DRC.	 
